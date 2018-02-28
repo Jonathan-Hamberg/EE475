@@ -3,7 +3,7 @@
 
 ShiftReg::ShiftReg() {}
 
-void ShiftReg::build(unsigned int reg_n, unsigned int m, unsigned int *pins, unsigned int rclk, unsigned int srclk) {
+void ShiftReg::build(unsigned int reg_n, unsigned int m, const unsigned int *pins, unsigned int rclk, unsigned int srclk) {
   this->n = reg_n;
   this->m = m;
   this->rclk = rclk;

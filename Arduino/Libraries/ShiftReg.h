@@ -37,7 +37,7 @@ class ShiftReg
    * @param rclk the pin number of the rclk
    * @param srclk the pin number of the srclk
    */
-  void build(unsigned int reg_n, unsigned int m, unsigned int *pins, unsigned int rclk, unsigned int srclk);
+  void build(unsigned int reg_n, unsigned int m, const unsigned int *pins, unsigned int rclk, unsigned int srclk);
 
   /**
    * This funciton sets all the values in the object to either high or low
