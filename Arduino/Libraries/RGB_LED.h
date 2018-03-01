@@ -2,7 +2,7 @@
 #define RGB_LED_H
 
 #include <Arduino.h>
-#include "ShiftReg.h"
+#include "ShiftOut.h"
 
 /**
  * This is the an RGB LED object. It uses the ShiftReg object to set the value of a rgb led.
@@ -26,7 +26,7 @@
 
 typedef byte led_color;
 
-class RGB_LED {
+class RGB_LED final {
   public:
 
   /**
@@ -43,7 +43,7 @@ class RGB_LED {
    * @param bm the blue m value
    * @param bn the blue n value
    */
-  RGB_LED(ShiftReg* reg, unsigned int rm, unsigned int rn, unsigned int gm, unsigned int gn, unsigned int bm, unsigned int bn);
+  RGB_LED(ShiftOut* reg, unsigned int rm, unsigned int rn, unsigned int gm, unsigned int gn, unsigned int bm, unsigned int bn);
 
   /**
    * This function sets the color of an LED.
@@ -59,7 +59,7 @@ class RGB_LED {
   virtual ~RGB_LED();
   
   private:
-  ShiftReg* reg;
+  ShiftOut* reg;
   unsigned int rm, rn, gm, gn, bm, bn;
 };
 

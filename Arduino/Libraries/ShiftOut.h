@@ -1,5 +1,5 @@
-#ifndef SHIFT_REG_H
-#define SHIFT_REG_H
+#ifndef SHIFT_OUT_H
+#define SHIFT_OUT_H
 
 #include <Arduino.h>
 
@@ -13,15 +13,14 @@
  */
 
 
-class ShiftReg 
-{
+class ShiftOut final {
   public:
 
   /**
    * This is the default constructor. The build function must be called before using any other funciton
    * in the class.
    */
-  ShiftReg();
+  ShiftOut();
 
   /**
    * This function sets up the ShiftReg class.
@@ -72,7 +71,7 @@ class ShiftReg
   /**
    * This is the destructor
    */
-  virtual ~ShiftReg();
+  ~ShiftOut();
 
   private:
 
@@ -84,5 +83,5 @@ class ShiftReg
   byte * values;
 };
 
-#endif // SHIFT_REG_H
+#endif // SHIFT_OUT_H
 

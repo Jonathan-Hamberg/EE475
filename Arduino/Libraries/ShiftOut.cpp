@@ -1,9 +1,9 @@
-#include "ShiftReg.h"
+#include "ShiftOut.h"
 #include <Arduino.h>
 
-ShiftReg::ShiftReg() {}
+ShiftOut::ShiftOut() {}
 
-void ShiftReg::build(unsigned int reg_n, unsigned int m, const unsigned int *pins, unsigned int rclk, unsigned int srclk) {
+void ShiftOut::build(unsigned int reg_n, unsigned int m, const unsigned int *pins, unsigned int rclk, unsigned int srclk) {
   this->n = reg_n;
   this->m = m;
   this->rclk = rclk;
@@ -23,14 +23,14 @@ void ShiftReg::build(unsigned int reg_n, unsigned int m, const unsigned int *pin
   this->load();
 }
 
-void ShiftReg::setAll(bool value) {
+void ShiftOut::setAll(bool value) {
   byte val = value ? ~0 : 0;
   for (int i = 0; i < index(n, m); i++) {
     values[i] = val;
   }
 }
 
-void ShiftReg::set(unsigned int val_n, unsigned int m, bool value) {
+void ShiftOut::set(unsigned int val_n, unsigned int m, bool value) {
   unsigned int ind = index((val_n >> 3), m);
   byte val = values[ind];
   byte mask = 1 << (val_n & 7);
@@ -42,11 +42,11 @@ void ShiftReg::set(unsigned int val_n, unsigned int m, bool value) {
   values[ind] = val;
 }
 
-void ShiftReg::setReg(unsigned int reg_n, unsigned int m, byte value) {
+void ShiftOut::setReg(unsigned int reg_n, unsigned int m, byte value) {
   values[index(reg_n, m)] = value;
 }
 
-void ShiftReg::load() {
+void ShiftOut::load() {
   digitalWrite(srclk, LOW);
   digitalWrite(rclk, LOW);
   
@@ -65,16 +65,16 @@ void ShiftReg::load() {
   digitalWrite(rclk, LOW);
 }
 
-unsigned int ShiftReg::index(unsigned int reg_n, unsigned int m) {
+unsigned int ShiftOut::index(unsigned int reg_n, unsigned int m) {
   return m * (this->n) + reg_n;
 }
 
-bool ShiftReg::extract(byte b, int pos) {
+bool ShiftOut::extract(byte b, int pos) {
   return (!!(b & (1<<pos)));
 }
 
-ShiftReg::~ShiftReg() {
-  delete values;
-  delete pins;
+ShiftOut::~ShiftOut() {
+  delete[] values;
+  delete[] pins;
 }
 
