@@ -1,16 +1,25 @@
 #include <Arduino.h>
 #include "Button.h"
 
-Button::Button(unsigned int n, ShiftIn *in) {
-  this->n = n;
-  this->in = in;
-  value = in->getBit(n) ? ~0: 0;
+Button::Button(unsigned int id) {
+  this->id = id;
+  value = 0;
   prs = nullptr;
   rel = nullptr;
 }
 
-unsigned int Button::getN() {
-  return n;
+Button::Button() {
+  this->id = 0;
+  prs = nullptr;
+  rel = nullptr;
+}
+
+unsigned int Button::getID() {
+  return id;
+}
+
+void Button::setID(unsigned int id) {
+  this->id = id;
 }
 
 bool Button::getValue() {
@@ -29,13 +38,13 @@ void Button::detachOnPress() {
   this->prs = nullptr;
 }
 
-void Button::detachonRelease() {
+void Button::detachOnRelease() {
   this->rel = nullptr;
 }
 
-void Button::check() {
+void Button::load(bool val) {
   value = value << 1;
-  value |= in->getBit(n);
+  value |= val;
   if (value == 127 && prs != nullptr) {
     prs->onEvent(this, ButtonEvent::PRESS);
   } else if (value == 254 && rel != nullptr) {

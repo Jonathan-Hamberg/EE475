@@ -11,26 +11,27 @@
 #include <ShiftIn.h>
 #include <RGB_LED.h>
 #include <Button.h>
+#include <ButtonManager.h>
+#include "myButtonListener.h"
 
 static unsigned int pins[] = {BLUE_PIN, GREEN_PIN, RED_PIN};
 ShiftOut out;
 ShiftIn in(REG_CLOCK, LOAD_PIN, DATA_PIN, 1);
 RGB_LED led(&out, 0, 16, 0, 8, 0, 0);
-Button button(0, &in);
+ButtonManager buttons(0, 8, &in);
+MyButtonListener listener(&led, 2, 3);
 
 
 void setup() {
-  //Serial.begin(9600);
+  Serial.begin(9600);
   out.build(3, 1, pins, RCLK_PIN, SRCLK_PIN);
-  pinMode(REG_CLOCK, OUTPUT);
-  pinMode(DATA_PIN, INPUT);
-  pinMode(LOAD_PIN, OUTPUT);
+  buttons.attachAllOnPress(&listener);
+  buttons.attachAllOnRelease(&listener);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  byte value = in.getReg(1);
-  out.setReg(0,0,value);
   out.load();
   in.load();
+  buttons.load();
 }

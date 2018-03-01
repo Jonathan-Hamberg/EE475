@@ -52,12 +52,22 @@ class Button final {
    * @param n the n-th bit down the registor for the button
    * @param in the shiftin object that holds the value for the buttons raw input
    */
-  Button(unsigned int n, ShiftIn *in);
+  Button(unsigned int id);
+
+  /**
+   * default constructor assigns id to 0
+   */
+  Button();
 
   /**
    * @return the location of the button on the shift registor
    */
-  unsigned int getN();
+  unsigned int getID();
+
+  /**
+   * Use this funciton to set the button id
+   */
+  void setID(unsigned int id);
 
   /**
    * @return the current state of the button
@@ -73,15 +83,14 @@ class Button final {
   void attachOnRelease(ButtonListener* rel);
 
   void detachOnPress();
-  void detachonRelease();
+  void detachOnRelease();
 
-  void check();
+  void load(bool val);
 
   ~Button();
 
   private:
-  ShiftIn *in;
-  unsigned int n;
+  unsigned int id;
   byte value;
   ButtonListener *prs, *rel;
 };
