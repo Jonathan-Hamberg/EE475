@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "RGB_LED.h"
 
-RGB_LED::RGB_LED(ShiftOut* reg, unsigned int rm, unsigned int rn, unsigned int gm, unsigned int gn, unsigned int bm, unsigned int bn) {
+RGB_LED::RGB_LED(ShiftOut* reg, unsigned int rn, unsigned int rm, unsigned int gn, unsigned int gm, unsigned int bn, unsigned int bm) {
   this->reg = reg;
   this->rm = rm;
   this->rn = rn;

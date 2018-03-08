@@ -81,6 +81,7 @@ class ShiftOut final {
   byte m, n, rclk, srclk;
   byte * pins;
   byte * values;
+  bool hasChanged;
 };
 
 #endif // SHIFT_OUT_H

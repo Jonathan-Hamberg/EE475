@@ -24,6 +24,7 @@ void ShiftOut::build(unsigned int reg_n, unsigned int m, const unsigned int *pin
 }
 
 void ShiftOut::setAll(bool value) {
+  hasChanged = true;
   byte val = value ? ~0 : 0;
   for (int i = 0; i < index(n, m); i++) {
     values[i] = val;
@@ -31,6 +32,7 @@ void ShiftOut::setAll(bool value) {
 }
 
 void ShiftOut::set(unsigned int val_n, unsigned int m, bool value) {
+  hasChanged = true;
   unsigned int ind = index((val_n >> 3), m);
   byte val = values[ind];
   byte mask = 1 << (val_n & 7);
@@ -43,16 +45,20 @@ void ShiftOut::set(unsigned int val_n, unsigned int m, bool value) {
 }
 
 void ShiftOut::setReg(unsigned int reg_n, unsigned int m, byte value) {
+  hasChanged = true;
   values[index(reg_n, m)] = value;
 }
 
 void ShiftOut::load() {
+  if (!hasChanged) return;
+  hasChanged = false;
   digitalWrite(srclk, LOW);
   digitalWrite(rclk, LOW);
   
   for (int i = n - 1; i >= 0; i--) {
     for (int b = 7; b >= 0; b--) {
-      for (int j = 0; j < m; j++) {
+      // I hate myself for this but it works
+      for (volatile int j = 0; j < m; j++) {
         byte val = values[index(i, j)];
         bool set = extract(val, b);
         digitalWrite(pins[j], set);

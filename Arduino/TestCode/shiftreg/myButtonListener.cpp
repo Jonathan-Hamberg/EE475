@@ -1,20 +1,50 @@
 #include <Arduino.h>
 #include "myButtonListener.h"
 
-MyButtonListener::MyButtonListener(RGB_LED *led, unsigned int n_up, unsigned int n_down) {
+MyButtonListener::MyButtonListener(RGB_LED *led, Seg7 *seg, ShiftOut *out, LiquidCrystal *lcd, unsigned int n_up, unsigned int n_down) {
   this->led = led;
   this->n_up = n_up;
   this->n_down = n_down;
+  this->seg = seg;
+  this->lcd = lcd;
+  this->out = out;
+  value = 0;
 }
 
 void MyButtonListener::onEvent(Button* caller, ButtonEvent event) {
-  if (event == ButtonEvent::PRESS) {
-    led->set(caller->getID(), LED_GREEN);
-    if (caller->getID() == 1) {
-      Serial.print("BOOM!!\n");
+  unsigned int id = caller->getID();
+  lcd->setCursor(0,1);
+  lcd->print("Button:");
+  lcd->setCursor(8 + id, 1);
+
+  if (id == 4) {
+    if (ButtonEvent::PRESS == event) {
+      out->set(38, 0, true);
+    } else {
+      out->set(38, 0, false);
     }
-  } else if (event == ButtonEvent::RELESE) {
-    led->set(caller->getID(), LED_RED);
+  }
+
+  if (event == ButtonEvent::RELESE) {
+    lcd->print("U");
+    return;
+  } else {
+    lcd->print("D");
+  }
+  
+  
+  if (id == 0) {
+    value++;
+  } else if (id == 1 && value > 0) {
+    value--;
+  }
+
+
+  seg->setNum(0, value % 10);
+  unsigned int v = (value / 10) % 10;
+  seg->setNum(1, v);
+  if (value < 10){
+    seg->mute(1);
   }
 }
 

@@ -43,7 +43,7 @@ class RGB_LED final {
    * @param bm the blue m value
    * @param bn the blue n value
    */
-  RGB_LED(ShiftOut* reg, unsigned int rm, unsigned int rn, unsigned int gm, unsigned int gn, unsigned int bm, unsigned int bn);
+  RGB_LED(ShiftOut* reg, unsigned int rn, unsigned int rm, unsigned int gn, unsigned int gm, unsigned int bn, unsigned int bm);
 
   /**
    * This function sets the color of an LED.
