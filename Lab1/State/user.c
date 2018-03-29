@@ -8,6 +8,7 @@
 
 #include "user.h"
 #include "mcc_generated_files/tmr0.h"
+#include "mcc_generated_files/pin_manager.h"
 
 /******************************************************************************/
 /* User Functions                                                             */
@@ -16,7 +17,8 @@
 /* <Initialize variables in user.h and insert code for user algorithms.> */
 
 void InitApp(void)
-{    // Start the timer to poll the button.
+{  
+    // Start the timer to poll the button.
     TMR0_StartTimer();
 }
 
