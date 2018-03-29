@@ -18,7 +18,6 @@
 
 void InitApp(void)
 {  
-    // Start the timer to poll the button.
-    TMR0_StartTimer();
+
 }
 

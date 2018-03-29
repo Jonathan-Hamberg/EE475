@@ -30,11 +30,10 @@ uint16_t address = 0;
  * Address[7:0] = PORTA[7:0] output.
  * Address[9:8] = PORTC[1:0] output.
  * 
- * Control LED     = PORTC[5] output.
- * Control Switch  = PORTC[4] input.
- * Latch           = PORTB[3] output.
- * Data Enable     = PORTB[2] output.
- * Data Enable Bar = PORTB[1] output.
+ * Control LED     = PORTB[5] output.
+ * Control Switch  = PORTB[4] input.
+ * Data Enable     = PORTB[3] output.
+ * Data Enable Bar = PORTB[2] output.
  * SRAM OE         = PORTC[3] output.
  * SRAM WE         = PORTC[2] output.
  */
@@ -43,34 +42,28 @@ uint16_t address = 0;
  * 
  */
 void StateTransitionWrite() {
-   // Disable the WE pin.
-    IO_RC2_SetHigh();
+    // Disable the OE pin.
+    IO_RC3_SetHigh();
 
-    // Enable the OE pin.
-    IO_RC3_SetLow();
+    // Enable data_enable PORTB[3], enable ~data_enable PORTB[2]
+    LATB = 0b00001000 | (LATB & ~0b00001100);
 
-    // Enable data enable.
-    IO_RB2_SetHigh();
-
-    // Enable data enable bar.
-    IO_RB1_SetLow();
+    // Turn on the LED control indicator.
+    IO_RB5_SetHigh();
 }
 
 /**
  * 
  */
 void StateTransitionRead() {
-    // Disable the OE pin.
-    IO_RC3_SetHigh();
+    // Disable data_enable PORTB[3], disable ~data_enable PORTB[2]
+    LATB = 0b00000100 | (LATB & ~0b00001100);
 
-    // Enable the WE pin.
-    IO_RC2_SetLow();
+    // Enable the OE pin.
+    IO_RC3_SetLow();
 
-    // Disable data enable.
-    IO_RB2_SetLow();
-
-    // Disable data enable bar.
-    IO_RB1_SetHigh();
+    // Turn off the LED control indicator.
+    IO_RB5_SetLow();
 }
 
 /**
@@ -89,8 +82,14 @@ void main(void) {
     // Initialize the system.
     SYSTEM_Initialize();
 
-    /* Initialize I/O and Peripherals for application */
-    InitApp();
+    // Start the timer to poll the button.
+    TMR0_StartTimer();
+
+    // Disable the WE pin.
+    IO_RC2_SetHigh();
+
+    // Enter the write state.
+    StateTransitionWrite();
 
     while (1) {
         // Determine if the timer has overflowed.
@@ -103,15 +102,12 @@ void main(void) {
             if (!current_button && previous_button) {
                 if (current_state == READ) {
                     current_state = WRITE;
-                    // Turn on the LED control indicator.
-                    IO_RB5_SetHigh();
 
                     // Transition to the Write state.
                     StateTransitionWrite();
                 } else {
                     current_state = READ;
-                    // Turn off the LED control indicator.
-                    IO_RB5_SetLow();
+
 
                     // Transition to the Read state.
                     StateTransitionRead();
@@ -144,8 +140,8 @@ void main(void) {
         address++;
 
         // Assign the address to the SRAM.
+        LATC = (uint8_t) (((address >> 8) & 0b00000011) | (LATC & ~0b00000011));
         LATA = (uint8_t) (address & 0xFF);
-        LATC |= (uint8_t) ((address >> 8) & 0x03);
 
         // 4ms delay.  Fill 1024 bytes in approximately 4s.
         __delay_ms(4);
