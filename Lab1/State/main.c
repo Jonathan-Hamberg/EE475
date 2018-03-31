@@ -3,8 +3,6 @@
 #include <stdint.h>        /* For uint8_t definition */
 #include <stdbool.h>       /* For true/false definition */
 
-#include "system.h"        /* System funct/params, like osc/peripheral config */
-#include "user.h"          /* User funct/params, such as InitApp */
 #include "mcc_generated_files/mcc.h"
 
 /*
@@ -28,14 +26,14 @@ uint16_t address = 0;
 
 /**
  * Address[7:0] = PORTA[7:0] output.
- * Address[9:8] = PORTC[1:0] output.
+ * Address[10:8] = PORTC[2:0] output.
  * 
  * Control LED     = PORTB[5] output.
  * Control Switch  = PORTB[4] input.
  * Data Enable     = PORTB[3] output.
  * Data Enable Bar = PORTB[2] output.
  * SRAM OE         = PORTC[3] output.
- * SRAM WE         = PORTC[2] output.
+ * SRAM WE         = PORTC[4] output.
  */
 
 /**
@@ -46,7 +44,7 @@ void StateTransitionWrite() {
     IO_RC3_SetHigh();
 
     // Enable data_enable PORTB[3], enable ~data_enable PORTB[2]
-    LATB = 0b00001000 | (LATB & ~0b00001100);
+    LATB = 0x08u | (LATB & ~0x0Cu);
 
     // Turn on the LED control indicator.
     IO_RB5_SetHigh();
@@ -57,7 +55,7 @@ void StateTransitionWrite() {
  */
 void StateTransitionRead() {
     // Disable data_enable PORTB[3], disable ~data_enable PORTB[2]
-    LATB = 0b00000100 | (LATB & ~0b00001100);
+    LATB = 0x04u | (LATB & ~0x0Cu);
 
     // Enable the OE pin.
     IO_RC3_SetLow();
@@ -71,8 +69,8 @@ void StateTransitionRead() {
  */
 void StateWrite() {
     // Toggle the WE low to high to write the data.
-    IO_RC2_SetLow();
-    IO_RC2_SetHigh();
+    IO_RC4_SetLow();
+    IO_RC4_SetHigh();
 }
 
 /**
@@ -140,7 +138,7 @@ void main(void) {
         address++;
 
         // Assign the address to the SRAM.
-        LATC = (uint8_t) (((address >> 8) & 0b00000011) | (LATC & ~0b00000011));
+        LATC = (uint8_t) ((address >> 8 & 0x07u) | (LATC & ~0x07u));
         LATA = (uint8_t) (address & 0xFF);
 
         // 4ms delay.  Fill 1024 bytes in approximately 4s.
