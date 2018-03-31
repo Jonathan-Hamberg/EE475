@@ -23,6 +23,7 @@
 #include "Timer.h"
 #include "myButtonListener.h"
 #include "myTimerListener.h"
+#include "GameState.h"
 #include <LiquidCrystal.h>
 
 
@@ -37,6 +38,7 @@ MyButtonListener listener(&led, &seg, &out, &lcd, 2, 3);
 lfsr r;
 MyTimerListener l(&led, &r, &lcd, 0);
 Timer t(8);
+GameState game;
 
 
 void setup() {
@@ -57,6 +59,82 @@ void setup() {
   seg.mute(0);
   seg.mute(1);
   lcd.clear();
+
+  Serial.println("-Building Game-");
+  game.init(59, 3, 1);
+  Serial.print("Game Time: ");
+  Serial.println(game.getTimeLeft());
+  Serial.print("Max Strikes: ");
+  Serial.println(game.getMaxStrikes());
+  Serial.print("Current Strikes: ");
+  Serial.println(game.getStrikes());
+  Serial.print("Current Game State: ");
+  Serial.println(game.getGameState());
+  Serial.print("SN : ");
+  Serial.println(game.getSN());
+  Serial.print("SN has vowel: ");
+  Serial.println(game.SNhasVowel());
+  Serial.print("SN is even: ");
+  Serial.println(game.SNisEven());
+  Serial.print("Batteries: ");
+  Serial.println(game.getBatteries());
+  Serial.println("-Indicator States-");
+  Serial.print("SND: ");
+  Serial.println(game.checkSND());
+  Serial.print("CLR: ");
+  Serial.println(game.checkCLR());
+  Serial.print("CAR: ");
+  Serial.println(game.checkCAR());
+  Serial.print("IND: ");
+  Serial.println(game.checkIND());
+  Serial.print("FRQ: ");
+  Serial.println(game.checkFRQ());
+  Serial.print("SIG: ");
+  Serial.println(game.checkSIG());
+  Serial.print("NSA: ");
+  Serial.println(game.checkNSA());
+  Serial.print("MSA: ");
+  Serial.println(game.checkMSA());
+  Serial.print("TRN: ");
+  Serial.println(game.checkTRN());
+  Serial.print("BOB: ");
+  Serial.println(game.checkBOB());
+  Serial.print("FRK: ");
+  Serial.println(game.checkFRK());
+  Serial.println("-Port States-");
+  Serial.print("DVI: ");
+  Serial.println(game.checkDVI());
+  Serial.print("Parallel: ");
+  Serial.println(game.checkParallel());
+  Serial.print("PS2: ");
+  Serial.println(game.checkPS2());
+  Serial.print("RJ45: ");
+  Serial.println(game.checkRJ45());
+  Serial.print("Serial: ");
+  Serial.println(game.checkSerial());
+  Serial.print("RCA: ");
+  Serial.println(game.checkRCA());
+  Serial.println("-Time Checks-");
+  Serial.print("Time has 0: ");
+  Serial.println(game.timeHasDigit(0));
+  Serial.print("Time has 1: ");
+  Serial.println(game.timeHasDigit(1));
+  Serial.print("Time has 2: ");
+  Serial.println(game.timeHasDigit(2));
+  Serial.print("Time has 3: ");
+  Serial.println(game.timeHasDigit(3));
+  Serial.print("Time has 4: ");
+  Serial.println(game.timeHasDigit(4));
+  Serial.print("Time has 5: ");
+  Serial.println(game.timeHasDigit(5));
+  Serial.print("Time has 6: ");
+  Serial.println(game.timeHasDigit(6));
+  Serial.print("Time has 7: ");
+  Serial.println(game.timeHasDigit(7));
+  Serial.print("Time has 8: ");
+  Serial.println(game.timeHasDigit(8));
+  Serial.print("Time has 9: ");
+  Serial.println(game.timeHasDigit(9));
 }
 
 void loop() {

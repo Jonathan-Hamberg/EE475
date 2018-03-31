@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "LFSR.h"
 
-lfsr::lfsr(unsigned long seed, unsigned long poly) {
+lfsr::lfsr(uint32_t seed, uint32_t poly) {
   while (seed == 0) {
     seed = rand();
   }
@@ -10,16 +10,16 @@ lfsr::lfsr(unsigned long seed, unsigned long poly) {
 }
 
 
-void lfsr::reseed(unsigned long seed) {
+void lfsr::reseed(uint32_t seed) {
   this->seed = seed;
 }
 
-void lfsr::setPoly(unsigned long poly) {
+void lfsr::setPoly(uint32_t poly) {
   this->poly = poly;
 }
 
 unsigned long lfsr::next() {
-  byte lsb = seed & 1;
+  uint8_t lsb = seed & 1;
   seed >>= 1;
   if (lsb) seed ^= poly;
   return seed;

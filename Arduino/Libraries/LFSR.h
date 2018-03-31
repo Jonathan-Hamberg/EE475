@@ -16,31 +16,31 @@ class lfsr final {
    * @param seed the seed value 
    * @param poly the polynomial to use
    */
-  lfsr(unsigned long seed = 0, unsigned long poly = (((unsigned long ) 1)<< 31) | (((unsigned long ) 1) << 21) | (((unsigned long ) 1) << 1) | 1);
+  lfsr(uint32_t seed = 0, uint32_t poly = (((unsigned long ) 1)<< 31) | (((unsigned long ) 1) << 21) | (((unsigned long ) 1) << 1) | 1);
 
   /**
    * This changes the seed of the lfsr
    * 
    * @param seed the new seed
    */
-  void reseed(unsigned long seed);
+  void reseed(uint32_t seed);
 
   /**
    * This changes the polynomial
    * 
    * @param poly the new polynomial
    */
-  void setPoly(unsigned long poly);
+  void setPoly(uint32_t poly);
 
   /**
    * Returns the next value in the lfsr
    */
-  unsigned long next();
+  uint32_t next();
   
   private:
 
-  unsigned long seed;
-  unsigned long poly;
+  uint32_t seed;
+  uint32_t poly;
   
 };
 
