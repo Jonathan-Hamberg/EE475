@@ -34,7 +34,7 @@ void ShiftIn::load() {
 
   for(int n = 0; n < regs; n++) {
     byte value;
-    for(int i = 0; i < 8; i++) {
+    for(volatile int i = 0; i < 8; i++) {
       value = value << 1;
       value |= digitalRead(data_pin);
       digitalWrite(clk_pin, HIGH);

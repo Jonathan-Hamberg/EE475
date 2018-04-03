@@ -15,9 +15,9 @@ Timer::Timer(unsigned int n) {
   }
 }
 
-bool Timer::attachTimer(TimerListener* listener, unsigned int wait, unsigned int id) {
+Timer::timer * Timer::attachTimer(TimerListener* listener, unsigned int wait, unsigned int id) {
   unsigned long now = millis();
-  if (empty == nullptr) return false;
+  if (empty == nullptr) return NULL;
   timer* current = empty;
   empty = empty->next;
   current->listener = listener;
@@ -26,7 +26,35 @@ bool Timer::attachTimer(TimerListener* listener, unsigned int wait, unsigned int
   current->wait = wait;
   current->id = id;
   schedule(current);
-  return true;
+  return current;
+}
+
+void Timer::detachTimer(timer * t) {
+  if (t == nullptr) return;
+  if (start == nullptr) return;
+
+  if (start == t) {
+    start = start->next;
+    t->next = empty;
+    empty = t;
+    return;
+  }
+
+  timer * last = start;
+  timer * current = start->next;
+
+  while (current != nullptr) {
+    if (current == t) {
+      last->next = current->next;
+      current->next = empty;
+      empty = current;
+      return;
+    }
+    last = current;
+    current = current->next;
+  }
+
+  return;
 }
 
 void Timer::load() {

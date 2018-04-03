@@ -37,6 +37,15 @@ class TimerListener {
 class Timer final {
   public:
 
+  struct timer {
+    TimerListener *listener;
+    unsigned int id;
+    unsigned int calls;
+    unsigned long last;
+    unsigned long wait;
+    timer* next;
+  };
+
   /**
    * This is the constructor for the timer object.
    * 
@@ -50,23 +59,17 @@ class Timer final {
    * @param listener a pointer to the listener
    * @param wait how long to wait before calling the listener
    * @param id an id for the timer defaults to 0
-   * @return ture if the timer has room
+   * @return address of the timer
    */
-  bool attachTimer(TimerListener* listener, unsigned int wait, unsigned int id = 0);
+  timer * attachTimer(TimerListener* listener, unsigned int wait, unsigned int id = 0);
+
+  void detachTimer(timer * t);
 
   void load();
 
   ~Timer();
 
   private:
-  struct timer {
-    TimerListener *listener;
-    unsigned int id;
-    unsigned int calls;
-    unsigned long last;
-    unsigned long wait;
-    timer* next;
-  };
 
   unsigned int n;
   timer *times, *start, *empty;

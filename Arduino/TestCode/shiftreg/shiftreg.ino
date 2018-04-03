@@ -26,6 +26,7 @@
 #include "GameState.h"
 #include <LiquidCrystal.h>
 
+#define DEBUG
 
 static unsigned int pins[] = {BLUE_PIN, GREEN_PIN, RED_PIN};
 LiquidCrystal lcd(RS, EN, D4, D5, D6, D7);
@@ -60,8 +61,9 @@ void setup() {
   seg.mute(1);
   lcd.clear();
 
-  Serial.println("-Building Game-");
   game.init(59, 3, 1);
+  #ifdef DEBUG
+  Serial.println("-Building Game-");
   Serial.print("Game Time: ");
   Serial.println(game.getTimeLeft());
   Serial.print("Max Strikes: ");
@@ -135,6 +137,7 @@ void setup() {
   Serial.println(game.timeHasDigit(8));
   Serial.print("Time has 9: ");
   Serial.println(game.timeHasDigit(9));
+  #endif
 }
 
 void loop() {
