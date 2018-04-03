@@ -12,7 +12,7 @@ set ( SRC
         src/bcm2835.c
 		src/ModuleManager.cpp src/ModuleManager.h
         ../Arduino/Libraries/GameState.cpp
-        ../Arduino/Libraries/LFSR.cpp src/Module.cpp src/Module.h)
+        ../Arduino/Libraries/LFSR.cpp src/Module.cpp src/Module.h src/SPIManager.cpp src/SPIManager.h src/Definitions.h)
 
 add_executable(defuser ${SRC})
 

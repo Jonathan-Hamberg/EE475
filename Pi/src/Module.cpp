@@ -1,9 +1,10 @@
 #include "Module.h"
 #include "bcm2835.h"
-void Module::transfer(uint8_t *buffer) const {
-    // TODO(jrh) set CS using gpio pins and decoder.
-    // using the following id this->moduleID;
 
-    // Transfer message to the module.
-    bcm2835_spi_transfern((char*)buffer, 3);
+void Module::setSeed(uint16_t seed) {
+    this->seed = seed;
+}
+
+uint16_t Module::getSeed() const {
+    return this->seed;
 }

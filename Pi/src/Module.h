@@ -3,13 +3,19 @@
 
 #include <stdint.h>
 
-class Module final {
+class Module  {
 public:
-    Module();
+    Module() = default;
+    virtual ~Module() = default;
 
-    void transfer(uint8_t write[3]) const;
+    void setSeed(uint16_t seed);
+    void setModuleNumber(uint8_t id);
+
+    uint16_t getSeed() const;
+
 private:
-    uint16_t moduleID;
+    uint16_t id;
+    uint16_t seed;
 };
 
 

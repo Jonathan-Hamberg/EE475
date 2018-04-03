@@ -5,16 +5,14 @@
 #include <cstdio>
 #include <cstdlib>
 #include <getopt.h>
+#include "SPIManager.h"
+#include "ModuleManager.h"
 
+///
+SPIManager spiManager = SPIManager();
 
-/**
- * Flag set by --difficulty, -d
- * Following options are valid.
- * // TODO(jrh) find the difficulty options.
- * 0 - Easy
- * 5 - Hard
- */
-int difficulty_flag = 0;
+///
+ModuleManager moduleManager = ModuleManager(&spiManager);
 
 /**
  * Flag set by --seed, -s
@@ -24,10 +22,8 @@ int seed_flag;
 
 static struct option long_options[] =
         {
-
-                {"difficulty", no_argument,       nullptr, 'd'},
-                {"seed",       optional_argument, nullptr, 's'},
-                {nullptr, 0,                      nullptr, 0}
+                {"seed", optional_argument, nullptr, 's'},
+                {nullptr, 0,                nullptr, 0}
         };
 
 void parseOptions(int argc, char *argv[]) {
@@ -41,12 +37,6 @@ void parseOptions(int argc, char *argv[]) {
         // Perform operations on the options.
         switch (c) {
             case 0:
-                break;
-
-            case 'd':
-                difficulty_flag = atoi(optarg);
-                // TODO(jrh) remove debugging print statement.
-                std::cout << "-d " << difficulty_flag << std::endl;
                 break;
 
             case 's':
@@ -67,6 +57,16 @@ void parseOptions(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
+
+    // Query the connected modules.
+    moduleManager.queryModules();
+
+    // Generate the initial game state.
+    GameState state = moduleManager.generateGameState();
+
+    // Transmit the game state to each of the modules.
+    moduleManager.transmitGameState(state);
+
     // Parse the command line arguments.
     parseOptions(argc, argv);
 

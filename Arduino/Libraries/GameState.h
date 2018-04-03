@@ -47,6 +47,7 @@ class GameState final {
    */
   GameState();
 
+
   /**
    * This function builds the bomb from a seed.
    * 
@@ -152,10 +153,10 @@ class GameState final {
    */
   bool SNhasVowel();
 
-  /**
-   * GameState desturctor
-   */
-  ~GameState();
+    /**
+     * GameState desturctor
+     */
+    ~GameState() = default;
 
   private:
 
@@ -169,7 +170,6 @@ class GameState final {
   uint8_t bat;
   char sn[7];
   uint8_t gameState;
-  
 };
 
 #endif // GAME_STATE_H
