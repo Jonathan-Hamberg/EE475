@@ -1,8 +1,7 @@
 #ifndef LFSR_H
 #define LFSR_H
 
-#include <Arduino.h>
-
+#include <stdint.h>
 /**
  * This is a simple lfsr object
  */
@@ -16,7 +15,7 @@ class lfsr final {
    * @param seed the seed value 
    * @param poly the polynomial to use
    */
-  lfsr(uint32_t seed = 0, uint32_t poly = (((unsigned long ) 1)<< 31) | (((unsigned long ) 1) << 21) | (((unsigned long ) 1) << 1) | 1);
+  lfsr(uint32_t seed = 0, uint32_t poly = (1UL << 31) | (1UL << 21) | (1UL << 1) | 1);
 
   /**
    * This changes the seed of the lfsr

@@ -1,18 +1,83 @@
-#include <iostream>
 #include "bcm2835.h"
+#include <iostream>
 #include <unistd.h>
+#include <getopt.h>
+#include <cstdio>
+#include <cstdlib>
+#include <getopt.h>
 
-int main() {
+
+/**
+ * Flag set by --difficulty, -d
+ * Following options are valid.
+ * // TODO(jrh) find the difficulty options.
+ * 0 - Easy
+ * 5 - Hard
+ */
+int difficulty_flag = 0;
+
+/**
+ * Flag set by --seed, -s
+ * Sets the seed used to generate pseudo-random numbers for each modules.
+ */
+int seed_flag;
+
+static struct option long_options[] =
+        {
+
+                {"difficulty", no_argument,       nullptr, 'd'},
+                {"seed",       optional_argument, nullptr, 's'},
+                {nullptr, 0,                      nullptr, 0}
+        };
+
+void parseOptions(int argc, char *argv[]) {
+
+
+    int c;
+    int index = 0;
+
+    while ((c = getopt_long(argc, argv, "ds", long_options, &index)) != -1) {
+
+        // Perform operations on the options.
+        switch (c) {
+            case 0:
+                break;
+
+            case 'd':
+                difficulty_flag = atoi(optarg);
+                // TODO(jrh) remove debugging print statement.
+                std::cout << "-d " << difficulty_flag << std::endl;
+                break;
+
+            case 's':
+                seed_flag = atoi(optarg);
+                // TODO(jrh) remove debugging print statement.
+                std::cout << "-s" << seed_flag << std::endl;
+                break;
+
+            case '?':
+                break;
+
+            default:
+                break;
+        }
+    }
+
+
+}
+
+int main(int argc, char *argv[]) {
+    // Parse the command line arguments.
+    parseOptions(argc, argv);
+
+    // Determine if the application is run with root privledges.
     if (geteuid() == 0) {
         if (!bcm2835_init()) {
-            return 1;
-        }
-
-        if (!bcm2835_close()) {
+            std::cout << "bcm2835_init() failed..." << std::endl;
             return 1;
         }
     } else {
-        std::cout << "You need to be root to properly run this test program" << std::endl;
+        std::cout << "You need to be root to properly run this test program." << std::endl;
         return 1;
     }
 
@@ -37,39 +102,33 @@ int main() {
     // BCM2835_SPI_BIT_ORDER_LSBFIRST, BCM2835_SPI_BIT_ORDER_MSBFIRST
     bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_LSBFIRST);
 
-    for (uint32_t i = 0; i < 10; i++) {
-        // Send off signal.
+    for (uint32_t i = 0; i < 1000; i++) {
+        // Send on signal.
+        std::cout << "On Signal..." << std::endl;
 
         // Communicate with module 0.
         bcm2835_spi_chipSelect(BCM2835_SPI_CS0);
-        bcm2835_spi_transfer(0x0);
+        bcm2835_spi_transfer(0x0F);
 
         // Communicate with module 1.
         bcm2835_spi_chipSelect(BCM2835_SPI_CS1);
-        bcm2835_spi_transfer(0x0);
-
-        // Communicate with module 2.
-        bcm2835_spi_chipSelect(BCM2835_SPI_CS2);
-        bcm2835_spi_transfer(0x0);
-
+        bcm2835_spi_transfer(0x0F);
 
         // Sleep for 1 second.
         sleep(1);
 
-        // Send on signal.
+        // Send off signal.
+        std::cout << "Off Signal..." << std::endl;
+
         // Communicate with module 0.
         bcm2835_spi_chipSelect(BCM2835_SPI_CS0);
-        bcm2835_spi_transfer(0x0);
-
+        bcm2835_spi_transfer(0xF0);
 
         // Communicate with module 1.
         bcm2835_spi_chipSelect(BCM2835_SPI_CS1);
-        bcm2835_spi_transfer(0x1);
+        bcm2835_spi_transfer(0xF0);
 
-        // Communicate with module 1.
-        bcm2835_spi_chipSelect(BCM2835_SPI_CS2);
-        bcm2835_spi_transfer(0x1);
-
+        sleep(1);
     }
 
     bcm2835_spi_end();
@@ -90,5 +149,11 @@ int main() {
     }
 
     std::cout << "Stopping GPIO Communication Test..." << std::endl;
+
+    std::cout << "bcm2835_close()" << std::endl;
+    if (!bcm2835_close()) {
+        std::cout << "bcm2835_close() failed..." << std::endl;
+        return 1;
+    }
     return 0;
 }

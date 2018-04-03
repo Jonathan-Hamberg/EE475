@@ -1,7 +1,6 @@
 #ifndef GAME_STATE_H
 #define GAME_STATE_H
 
-#include <Arduino.h>
 #include <stdint.h>
 
 /**
@@ -14,9 +13,11 @@
  * @authors Daniel Predmore, Jonathan Hamberg, Christy Troung
  */
 
-#define PRE_GAME 0;
-#define START_GAME 1;
-#define GAME_OVER 2;
+#define MODE_INACTIVE 0
+#define MODE_ACTIVE 1
+#define GAME_DEFUSED 2
+#define MODE_EXPLODED 3
+#define MODE_DEMO 4
 
 #define GAME_STATE_IND_SND 0
 #define GAME_STATE_IND_CLR 1
@@ -58,14 +59,15 @@ class GameState final {
   /**
    * These are the getter functions. Each one returns the corisponding value
    */
-  uint8_t getStrikes();
-  uint8_t getMaxStrikes();
-  uint16_t getTimeLeft();
-  uint16_t getIndicators();
-  uint8_t getPorts();
-  uint8_t getBatteries();
-  char * getSN();
-  uint8_t getGameState();
+  uint8_t getStrikes() const;
+  uint8_t getMaxStrikes() const;
+  uint16_t getCountdownTime() const;
+  uint16_t getTimeLeft() const;
+  uint16_t getIndicators() const;
+  uint8_t getPorts() const;
+  uint8_t getBatteries() const;
+  const char * getSN() const;
+  uint8_t getGameState() const;
 
   /**
    * These functions set the value of each of the bombs parameters
@@ -106,27 +108,27 @@ class GameState final {
   /**
    * These fucntions check the value of each indicator
    */
-  boolean checkSND();
-  boolean checkCLR();
-  boolean checkCAR();
-  boolean checkIND();
-  boolean checkFRQ();
-  boolean checkSIG();
-  boolean checkNSA();
-  boolean checkMSA();
-  boolean checkTRN();
-  boolean checkBOB();
-  boolean checkFRK();
+  bool checkSND();
+  bool checkCLR();
+  bool checkCAR();
+  bool checkIND();
+  bool checkFRQ();
+  bool checkSIG();
+  bool checkNSA();
+  bool checkMSA();
+  bool checkTRN();
+  bool checkBOB();
+  bool checkFRK();
 
   /**
    * These functions check the state of each port
    */
-  boolean checkDVI();
-  boolean checkParallel();
-  boolean checkPS2();
-  boolean checkRJ45();
-  boolean checkSerial();
-  boolean checkRCA();
+  bool checkDVI();
+  bool checkParallel();
+  bool checkPS2();
+  bool checkRJ45();
+  bool checkSerial();
+  bool checkRCA();
 
   /**
    * This function check to see if a digit is displayed on the golabal counter
@@ -134,21 +136,21 @@ class GameState final {
    * @param digit the digit to look for
    * @return true if found
    */
-  boolean timeHasDigit(uint8_t digit);
+  bool timeHasDigit(uint8_t digit);
 
   /**
    * This function check to see if the last digit of the SN is even
    * 
    * @return true if the last digit is even
    */
-  boolean SNisEven();
+  bool SNisEven();
 
   /**
    * This function checks if the SN has a vowel
    * 
    * @return true if a vowel is found
    */
-  boolean SNhasVowel();
+  bool SNhasVowel();
 
   /**
    * GameState desturctor
@@ -157,8 +159,8 @@ class GameState final {
 
   private:
 
-  boolean getBit(uint16_t value, uint8_t n);
-  uint16_t setBit(uint16_t value, uint8_t n, boolean b);
+  bool getBit(uint16_t value, uint8_t n);
+  uint16_t setBit(uint16_t value, uint8_t n, bool b);
   
   uint8_t strikes, maxStrikes;
   uint16_t countdownTime;

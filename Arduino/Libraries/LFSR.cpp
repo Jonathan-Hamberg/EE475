@@ -1,4 +1,9 @@
+#ifdef __linux__
+#include <stdlib.h>
+#else
 #include <Arduino.h>
+#endif
+
 #include "LFSR.h"
 
 lfsr::lfsr(uint32_t seed, uint32_t poly) {
@@ -18,7 +23,7 @@ void lfsr::setPoly(uint32_t poly) {
   this->poly = poly;
 }
 
-unsigned long lfsr::next() {
+uint32_t lfsr::next() {
   uint8_t lsb = seed & 1;
   seed >>= 1;
   if (lsb) seed ^= poly;
