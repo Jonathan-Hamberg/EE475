@@ -34,5 +34,5 @@ public:
      * @param sound The sound that is desired to be played.
      */
     void playSound(PlaySound sound);
-}
+};
 #endif // GAME_MANAGER

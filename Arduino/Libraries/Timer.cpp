@@ -8,7 +8,7 @@ Timer::Timer(unsigned int n) {
   start = nullptr;
 
   timer* current = empty;
-  for (int i = 1; i<n; i++) {
+  for (unsigned int i = 1; i<n; i++) {
     current->next = times + i;
     current = current->next;
     current->next = nullptr;

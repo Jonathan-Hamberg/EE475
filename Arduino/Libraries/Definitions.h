@@ -14,18 +14,22 @@ struct SPIMessage {
     uint8_t address;
     uint16_t data;
 };
+
+
+
 /**
  *
  */
 enum class TransmitOpCodes : uint8_t {
-    Ignored = 0,
-    Mode,
-    MakStrikes,
-    Seed,
-    Countdown,
-    Indicators,
-    Ports,
-    Battery,
+    Ignored = 0, // Used when no message is being transmitted.
+    ReceiveAny, // Used to request any message from the module that it wants to send.
+    Mode, // Updates the mode of the module.
+    MaxStrikes, // Updates the maximum number of strikes.
+    Seed, // Updates the modules individual seed.
+    Countdown, // Update the countdown timer for the module.
+    Indicators, // Update the indicator lights on the module.
+    Ports, // Updates the port indicator light on the module.
+    Battery, // Update the batteries on the module.
 };
 
 /**
@@ -101,11 +105,12 @@ enum class GamePort : uint8_t {
 /**
  *
  */
-enum class PlaySound uint8_t {
+enum class PlaySound : uint8_t {
     Sound1 = 0,
     Sound2,
     Sound3,
     Sound4,
     Sound5,
-}
+};
+
 #endif //DEFUSER_DEFINITIONS_H

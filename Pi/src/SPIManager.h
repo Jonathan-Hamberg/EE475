@@ -2,10 +2,20 @@
 #define DEFUSER_SPIMANAGER_H
 
 #include <inttypes.h>
+#include <Definitions.h>
+
 /**
  *
  */
 class SPIManager final {
+
+private:
+    ///
+    uint8_t CS;
+
+    ///
+    void (*callback)(const SPIMessage&);
+
 public:
     /**
      *
@@ -29,8 +39,13 @@ public:
      * @param size
      */
     void transfer(uint8_t* buffer, uint32_t size);
-private:
-    uint8_t CS;
+
+    /**
+     *
+     * @param callback
+     */
+    void setCallback(void (*callback)(const SPIMessage&));
+
 };
 
 

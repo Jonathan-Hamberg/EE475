@@ -1,7 +1,9 @@
 #include <Arduino.h>
 #include "Seg7.h"
 
-byte segMap[] = {64, ~9,(byte) ~94, 36, (byte) ~105, 12, 8, (byte) ~25, 0, 4};
+byte segMap[] = {uint8_t(64), uint8_t(~9),uint8_t(~94), uint8_t(36),
+    uint8_t(~105), uint8_t(12), uint8_t(8), uint8_t(~25),
+    uint8_t(0), uint8_t(4)};
 
 Seg7::Seg7(ShiftOut *out, byte m, unsigned int n) {
   this->out = out;

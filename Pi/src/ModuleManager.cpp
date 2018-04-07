@@ -98,7 +98,7 @@ void ModuleManager::transmitGameState(const GameState &state) {
     // Transmit game state to all modules.
     updateModules(TransmitOpCodes::Mode, uint16_t(state.getGameState()));
     updateModules(TransmitOpCodes::Countdown, state.getCountdownTime());
-    updateModules(TransmitOpCodes::MakStrikes, state.getMaxStrikes());
+    updateModules(TransmitOpCodes::MaxStrikes, state.getMaxStrikes());
     updateModules(TransmitOpCodes::Indicators, state.getIndicators());
     updateModules(TransmitOpCodes::Ports, state.getPorts());
     updateModules(TransmitOpCodes::Battery, state.getBatteries());

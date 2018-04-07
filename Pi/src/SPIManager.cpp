@@ -94,3 +94,8 @@ void SPIManager::transfer(uint8_t *buffer, uint32_t size) {
     // Disable the module chip select.
     bcm2835_gpio_clr(decoderEnable);
 }
+
+void SPIManager::setCallback(void (*callback)(const SPIMessage &)) {
+
+}
+

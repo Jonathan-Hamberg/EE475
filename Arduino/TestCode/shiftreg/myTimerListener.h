@@ -3,9 +3,9 @@
 
 #include "Timer.h"
 #include <Arduino.h>
-#include <RGB_LED.H>
+#include <RGB_LED.h>
 #include <LiquidCrystal.h>
-#include "lfsr.h"
+#include "LFSR.h"
 
 
 class MyTimerListener : public TimerListener {

@@ -1,6 +1,7 @@
 #ifndef SPI_MANAGER_H
 #define SPI_MANAGER_H
 
+#include <Definitions.h>
 
 /**
  *
@@ -38,8 +39,7 @@ public:
      * This method should fill
      * @param callack
      */
-    void setReceiveCallback(void (*callack)(ReceiveOpCodes op) uint16_t& data);
-
+    void setReceiveCallback(void (*callack)(ReceiveOpCodes op), uint16_t& data);
 
 };
 #endif // SPI_MANAGER_H
