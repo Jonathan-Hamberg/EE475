@@ -98,4 +98,14 @@ enum class GamePort : uint8_t {
     Rca,
 };
 
+/**
+ *
+ */
+enum class PlaySound uint8_t {
+    Sound1 = 0,
+    Sound2,
+    Sound3,
+    Sound4,
+    Sound5,
+}
 #endif //DEFUSER_DEFINITIONS_H
