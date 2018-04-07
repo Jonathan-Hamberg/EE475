@@ -6,6 +6,7 @@
 #include "GameState.h"
 #include "Module.h"
 #include "SPIManager.h"
+#include "Definitions.h"
 
 /**
  *
@@ -38,13 +39,8 @@ public:
 
     /**
      *
-     * @return
      */
-    GameState generateGameState();
-    /**
-     *
-     */
-    void updateMode();
+    void updateModules(TransmitOpCodes opCode, uint16_t data);
 
     /**
      *

@@ -11,8 +11,13 @@ set ( SRC
         src/main.cpp
         src/bcm2835.c
 		src/ModuleManager.cpp src/ModuleManager.h
-        ../Arduino/Libraries/GameState.cpp
-        ../Arduino/Libraries/LFSR.cpp src/Module.cpp src/Module.h src/SPIManager.cpp src/SPIManager.h src/Definitions.h)
+		src/SPIManager.cpp src/SPIManager.h
+		src/Module.cpp src/Module.h
+		../Arduino/Libraries/GameState.cpp
+		../Arduino/Libraries/GameState.h
+        ../Arduino/Libraries/LFSR.cpp
+		../Arduino/Libraries/LFSR.h
+		../Arduino/Libraries/Definitions.h src/GameManager.cpp src/GameManager.h)
 
 add_executable(defuser ${SRC})
 

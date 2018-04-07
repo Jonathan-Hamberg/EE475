@@ -7,12 +7,16 @@
 #include <getopt.h>
 #include "SPIManager.h"
 #include "ModuleManager.h"
+#include "GameManager.h"
 
 ///
 SPIManager spiManager = SPIManager();
 
 ///
 ModuleManager moduleManager = ModuleManager(&spiManager);
+
+///
+GameManager gameManager = GameManager(&moduleManager);
 
 /**
  * Flag set by --seed, -s
@@ -62,10 +66,10 @@ int main(int argc, char *argv[]) {
     moduleManager.queryModules();
 
     // Generate the initial game state.
-    GameState state = moduleManager.generateGameState();
+    gameManager.generateGameState();
 
     // Transmit the game state to each of the modules.
-    moduleManager.transmitGameState(state);
+    moduleManager.transmitGameState(gameManager.getGameState());
 
     // Parse the command line arguments.
     parseOptions(argc, argv);

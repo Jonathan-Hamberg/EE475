@@ -5,6 +5,15 @@
 #ifndef DEFUSER_DEFINITIONS_H
 #define DEFUSER_DEFINITIONS_H
 
+#include <stdint.h>
+
+/**
+ *
+ */
+struct SPIMessage {
+    uint8_t address;
+    uint16_t data;
+};
 /**
  *
  */
@@ -49,6 +58,9 @@ enum class ModuleTypes : uint8_t {
     Knobs,
 };
 
+/**
+ *
+ */
 enum class GameMode : uint8_t {
     Inactive = 0,
     Active,
@@ -57,6 +69,9 @@ enum class GameMode : uint8_t {
     Demo
 };
 
+/**
+ *
+ */
 enum class GameIndicator : uint8_t {
     Snd = 0,
     Clr,
@@ -71,6 +86,9 @@ enum class GameIndicator : uint8_t {
     Frk,
 };
 
+/**
+ *
+ */
 enum class GamePort : uint8_t {
     Dvi = 0,
     Parallel,

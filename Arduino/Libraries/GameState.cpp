@@ -4,20 +4,21 @@
 
 #include "GameState.h"
 #include "LFSR.h"
+#include "Definitions.h"
 
 //              000000000011111111112222222222
 //              012345678901234567890123456789
 char snSet[] = "ABCDEFGHIJKLMNOPQRSTUVWXZ";
 
 inline bool GameState::getBit(uint16_t value, uint8_t n) {
-    return !!(value & (1 << n));
+    return (value & (1u << n)) != 0;
 }
 
 inline uint16_t GameState::setBit(uint16_t value, uint8_t n, bool b) {
     if (b) {
-        value |= (1 << n);
+        value |= (1u << n);
     } else {
-        value &= ~(1 << n);
+        value &= ~(1u << n);
     }
     return value;
 }
@@ -31,19 +32,19 @@ void GameState::init(uint16_t countdownTime, uint8_t maxStrikes, uint32_t seed) 
     this->countdownTime = countdownTime;
     this->maxStrikes = maxStrikes;
     this->strikes = 0;
-    this->indicators = r.next();
-    this->ports = r.next();
-    this->bat = r.next() % 7;
+    this->indicators = uint16_t(r.next());
+    this->ports = uint8_t(r.next());
+    this->bat = uint8_t(r.next() % 7);
     this->sn[0] = snSet[r.next() % 24];
     this->sn[1] = snSet[r.next() % 24];
     for (int i = 2; i < 5; i++) {
         if (r.next() & 1) {
-            this->sn[i] = r.next() % 10 + '0';
+            this->sn[i] = uint8_t(r.next() % 10 + '0');
         } else {
             this->sn[i] = snSet[r.next() % 24];
         }
     }
-    this->sn[5] = r.next() % 10 + '0';
+    this->sn[5] = uint8_t(r.next() % 10 + '0');
     this->sn[6] = '\0';
     this->gameState = MODE_INACTIVE;
 }
@@ -113,71 +114,71 @@ void GameState::setBat(uint8_t bat) {
 }
 
 void GameState::setSND(bool value) {
-    this->indicators = setBit(this->indicators, GAME_STATE_IND_SND, value);
+    this->indicators = setBit(this->indicators, uint8_t(GameIndicator::Snd), value);
 }
 
 void GameState::setCLR(bool value) {
-    this->indicators = setBit(this->indicators, GAME_STATE_IND_CLR, value);
+    this->indicators = setBit(this->indicators, uint8_t(GameIndicator::Clr), value);
 }
 
 void GameState::setCAR(bool value) {
-    this->indicators = setBit(this->indicators, GAME_STATE_IND_CAR, value);
+    this->indicators = setBit(this->indicators, uint8_t(GameIndicator::Car), value);
 }
 
 void GameState::setIND(bool value) {
-    this->indicators = setBit(this->indicators, GAME_STATE_IND_IND, value);
+    this->indicators = setBit(this->indicators, uint8_t(GameIndicator::Ind), value);
 }
 
 void GameState::setFRQ(bool value) {
-    this->indicators = setBit(this->indicators, GAME_STATE_IND_FRQ, value);
+    this->indicators = setBit(this->indicators, uint8_t(GameIndicator::Frq), value);
 }
 
 void GameState::setSIG(bool value) {
-    this->indicators = setBit(this->indicators, GAME_STATE_IND_SIG, value);
+    this->indicators = setBit(this->indicators, uint8_t(GameIndicator::Sig), value);
 }
 
 void GameState::setNSA(bool value) {
-    this->indicators = setBit(this->indicators, GAME_STATE_IND_NSA, value);
+    this->indicators = setBit(this->indicators, uint8_t(GameIndicator::Nsa), value);
 }
 
 void GameState::setMSA(bool value) {
-    this->indicators = setBit(this->indicators, GAME_STATE_IND_MSA, value);
+    this->indicators = setBit(this->indicators, uint8_t(GameIndicator::Msa), value);
 }
 
 void GameState::setTRN(bool value) {
-    this->indicators = setBit(this->indicators, GAME_STATE_IND_TRN, value);
+    this->indicators = setBit(this->indicators, uint8_t(GameIndicator::Trn), value);
 }
 
 void GameState::setBOB(bool value) {
-    this->indicators = setBit(this->indicators, GAME_STATE_IND_BOB, value);
+    this->indicators = setBit(this->indicators, uint8_t(GameIndicator::Bob), value);
 }
 
 void GameState::setFRK(bool value) {
-    this->indicators = setBit(this->indicators, GAME_STATE_IND_FRK, value);
+    this->indicators = setBit(this->indicators, uint8_t(GameIndicator::Frk), value);
 }
 
 void GameState::setDVI(bool value) {
-    this->ports = setBit(this->ports, GAME_STATE_PORT_DVI, value);
+    this->ports = uint8_t(setBit(this->ports, uint8_t(GamePort::Dvi), value));
 }
 
 void GameState::setParallel(bool value) {
-    this->ports = setBit(this->ports, GAME_STATE_PORT_PARALLEL, value);
+    this->ports = uint8_t(setBit(this->ports, uint8_t(GamePort::Parallel), value));
 }
 
 void GameState::setPS2(bool value) {
-    this->ports = setBit(this->ports, GAME_STATE_PORT_PS2, value);
+    this->ports = uint8_t(setBit(this->ports, uint8_t(GamePort::Ps2), value));
 }
 
 void GameState::setRJ45(bool value) {
-    this->ports = setBit(this->ports, GAME_STATE_PORT_RJ45, value);
+    this->ports = uint8_t(setBit(this->ports, uint8_t(GamePort::Rj45), value));
 }
 
 void GameState::setSerial(bool value) {
-    this->ports = setBit(this->ports, GAME_STATE_PORT_SERIAL, value);
+    this->ports = uint8_t(setBit(this->ports, uint8_t(GamePort::Serial), value));
 }
 
 void GameState::setRCA(bool value) {
-    this->ports = setBit(this->ports, GAME_STATE_PORT_RCA, value);
+    this->ports = uint8_t(setBit(this->ports, uint8_t(GamePort::Rca), value));
 }
 
 bool GameState::checkSND() {
