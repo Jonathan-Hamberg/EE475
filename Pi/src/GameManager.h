@@ -13,7 +13,7 @@ private:
     /// Current game state.
     GameState gameState;
 
-    ///
+    /// Reference to the module manager.
     ModuleManager *moduleManager;
 public:
 

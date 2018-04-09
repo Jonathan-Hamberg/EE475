@@ -2,6 +2,7 @@
 #define DEFUSER_MODULE_H
 
 #include <cstdint>
+#include "Definitions.h"
 
 /**
  *
@@ -30,8 +31,20 @@ public:
      */
     uint16_t getSeed() const;
 
+    /**
+     *
+     */
+    void setModuleType(ModuleTypes);
+
+    /**
+     *
+     * @return
+     */
+    ModuleTypes getModuleType();
+
 private:
     uint16_t seed;
+    ModuleTypes moduleType;
 };
 
 

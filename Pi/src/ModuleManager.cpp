@@ -15,7 +15,7 @@ uint16_t ModuleManager::getGlgobalSeed() {
 void ModuleManager::queryModules() {
 
     // Delete previous modules.
-    for(const auto &kv : moduleMap) {
+    for (const auto &kv : moduleMap) {
         delete kv.second;
     }
 
@@ -57,9 +57,13 @@ void ModuleManager::queryModules() {
         }
 
         // If the module has been found then add it to the module map.
-        if(hasModule) {
+        if (hasModule) {
             auto *myModule = new Module();
+            // Store the module seed.
             myModule->setSeed(seed);
+            // Store the module type.
+            myModule->setModuleType(ModuleTypes(*data & 0xFFu));
+            // Add module to the connected map structure.
             moduleMap.emplace(i, myModule);
         }
     }
@@ -73,7 +77,7 @@ void ModuleManager::updateModules(TransmitOpCodes opCode, uint16_t data) {
     buffer[0] = uint8_t(opCode);
 
     // Set the transmit data.
-    *(uint16_t*)(&buffer[1]) = data;
+    *(uint16_t *) (&buffer[1]) = data;
 
     // Transmit through every connected module.
     for (const auto &module : moduleMap) {
@@ -83,7 +87,8 @@ void ModuleManager::updateModules(TransmitOpCodes opCode, uint16_t data) {
         // Transmit the data.
         spiManager->transfer(buffer, 3);
 
-        // TODO(jrh) read the response in case the chip wants to do something.
+        // Respond to the received data from the module.
+        this->receiveCallback(buffer);
     }
 
 
@@ -113,10 +118,40 @@ void ModuleManager::transmitGameState(const GameState &state) {
         *data = module.second->getSeed();
         spiManager->transfer(buffer, 3);
 
-        // TODO(jrh) read the response in case the chip wants to do something.
+        this->receiveCallback(buffer);
+    }
+}
+
+void ModuleManager::playSound(PlaySound sound) {
+// TODO(jrh) play stuff.
+}
+
+
+void ModuleManager::receiveCallback(const SPIReceiveMessage &msg) {
+
+    switch (msg.address) {
+        case ReceiveOpCodes::Sound:
+            playSound(PlaySound(msg.data));
+            break;
+        case ReceiveOpCodes::Ignored:
+            break;
+        case ReceiveOpCodes::Mode:
+            break;
+        case ReceiveOpCodes::ModuleType:
+            break;
     }
 
 }
+
+void ModuleManager::receiveCallback(const uint8_t buffer[3]) {
+
+    // Store data into the structure.
+    SPIReceiveMessage msg{ReceiveOpCodes(buffer[0] >> 4u), *(uint16_t *) (&buffer[1])};
+
+    // Call the strongly typed receiveCallback.
+    receiveCallback(msg);
+}
+
 
 
 

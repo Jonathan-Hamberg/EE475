@@ -135,14 +135,17 @@ bool SimonSays::SimonSaysButtonListener::setButtons() {
 }
 
 void SimonSays::SimonSaysButtonListener::offAction(Button * caller, ButtonEvent event) {
-
+    (void)(caller);
+    (void)(event);
 }
 
 void SimonSays::SimonSaysButtonListener::demoAction(Button * caller, ButtonEvent event) {
-
+    (void)(caller);
+    (void)(event);
 }
 
 void SimonSays::SimonSaysButtonListener::armedAction(Button * caller, ButtonEvent event) {
+    (void)(event);
   bool allDown = setButtons();
   if (event == ButtonEvent::PRESS) {
     //Serial.println("Button Pressed");
@@ -188,6 +191,7 @@ void SimonSays::SimonSaysButtonListener::armedAction(Button * caller, ButtonEven
 }
 
 void SimonSays::SimonSaysButtonListener::disarmedAction(Button * caller, ButtonEvent event) {
+    (void)(event);
   parent->out->set(caller->getID(), 0, false);
 }
 
@@ -196,9 +200,12 @@ SimonSays::SimonSaysTimerListener::SimonSaysTimerListener(SimonSays * parent) {
 }
 
 unsigned int SimonSays::SimonSaysTimerListener::onEvent(Timer * caller, unsigned int id, unsigned int calls) {
+    (void)(caller);
+    (void)(id);
+    (void)(calls);
   parent->count2 = 0;
 
-  if (parent->displayCount & 1 == 1) {
+  if ((parent->displayCount & 1) == 1) {
     for (int i = 0; i < 4; i++) {
       parent->out->set(i, 0, false);
     }

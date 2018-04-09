@@ -13,9 +13,6 @@ private:
     ///
     uint8_t CS;
 
-    ///
-    void (*callback)(const SPIMessage&);
-
 public:
     /**
      *
@@ -39,13 +36,6 @@ public:
      * @param size
      */
     void transfer(uint8_t* buffer, uint32_t size);
-
-    /**
-     *
-     * @param callback
-     */
-    void setCallback(void (*callback)(const SPIMessage&));
-
 };
 
 

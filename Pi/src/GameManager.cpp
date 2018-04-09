@@ -7,6 +7,14 @@ GameManager::GameManager(ModuleManager *moduleManager) {
 
 void GameManager::generateGameState() {
     this->gameState = GameState();
+
+    // Set the indicator.
+    gameState.setIndicators(uint16_t(rand()));
+    // TODO(jrh) find way to pass countdown time.
+    gameState.setCountdownTime(32);
+    gameState.setPorts(uint8_t(rand()));
+    // TODO(jrh) find way to pass max strikes.
+    gameState.setMaxStrikes(3);
 }
 
 const GameState &GameManager::getGameState() {
@@ -23,7 +31,7 @@ void GameManager::changeGameMode(GameMode mode) {
     this->moduleManager->updateModules(TransmitOpCodes::Mode, uint16_t(mode));
 
     // Set the new game mode.
-    this->gameState.setGameStat(uint8_t(mode));
+    this->gameState.setGameState(mode);
 }
 
 void GameManager::processMessage() {

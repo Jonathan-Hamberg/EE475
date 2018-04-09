@@ -8,26 +8,25 @@
 #include "SPIManager.h"
 #include "ModuleManager.h"
 #include "GameManager.h"
+#include <signal.h>
 
-///
-SPIManager spiManager = SPIManager();
+static volatile int keepRunning = 1;
 
-///
-ModuleManager moduleManager = ModuleManager(&spiManager);
-
-///
-GameManager gameManager = GameManager(&moduleManager);
 
 /**
  * Flag set by --seed, -s
  * Sets the seed used to generate pseudo-random numbers for each modules.
  */
-int seed_flag;
+int flag_seed = 0;
+int flag_countdown = 120;
+int flag_strikes = 3;
 
 static struct option long_options[] =
         {
-                {"seed", optional_argument, nullptr, 's'},
-                {nullptr, 0,                nullptr, 0}
+                {"seed",      optional_argument, nullptr, 's'},
+                {"countdown", optional_argument, nullptr, 'c'},
+                {"strikes",   optional_argument, nullptr, 't'},
+                {nullptr, 0,                     nullptr, 0}
         };
 
 void parseOptions(int argc, char *argv[]) {
@@ -44,23 +43,50 @@ void parseOptions(int argc, char *argv[]) {
                 break;
 
             case 's':
-                seed_flag = atoi(optarg);
+                flag_seed = atoi(optarg);
                 // TODO(jrh) remove debugging print statement.
-                std::cout << "-s" << seed_flag << std::endl;
+                std::cout << "-s " << flag_seed << std::endl;
                 break;
+            case 't':
+                flag_strikes = atoi(optarg);
+                std::cout << "-t " << flag_strikes << std::endl;
 
+                break;
+            case 'c':
+                flag_countdown = atoi(optarg);
+                std::cout << "-c " << flag_countdown << std::endl;
+                break;
             case '?':
                 break;
-
             default:
                 break;
         }
     }
+}
 
+void intHandler(int signal) {
+    // Unused parameter
+    (void)(signal);
 
+    // Tell the main program to stop.
+    keepRunning = 0;
 }
 
 int main(int argc, char *argv[]) {
+    // Parse the command line arguments.
+    parseOptions(argc, argv);
+
+    // Register the signal interrupt handler.
+    signal(SIGINT, intHandler);
+
+    // Create the SPI Manager object.
+    SPIManager spiManager = SPIManager();
+
+    // Create the module manager object.
+    ModuleManager moduleManager = ModuleManager(&spiManager);
+
+    // Create the game manager object.
+    GameManager gameManager = GameManager(&moduleManager);
 
     // Query the connected modules.
     moduleManager.queryModules();
@@ -71,10 +97,7 @@ int main(int argc, char *argv[]) {
     // Transmit the game state to each of the modules.
     moduleManager.transmitGameState(gameManager.getGameState());
 
-    // Parse the command line arguments.
-    parseOptions(argc, argv);
-
-    // Determine if the application is run with root privledges.
+    // Determine if the application is run with root privileges.
     if (geteuid() == 0) {
         if (!bcm2835_init()) {
             std::cout << "bcm2835_init() failed..." << std::endl;
@@ -159,5 +182,13 @@ int main(int argc, char *argv[]) {
         std::cout << "bcm2835_close() failed..." << std::endl;
         return 1;
     }
+
+    // Update all the modules every 100 ms.
+    while (keepRunning) {
+
+        // Sleep for 100 ms until the next update.
+        usleep(100 * 1000);
+    }
+
     return 0;
 }

@@ -48,7 +48,26 @@ public:
      */
     void transmitGameState(const GameState &state);
 
+    /**
+     *
+     * @param sound
+     */
+    void playSound(PlaySound sound);
+
 private:
+
+    /**
+     *
+     * @param msg
+     */
+    void receiveCallback(const SPIReceiveMessage& msg);
+
+    /**
+     *
+     * @param buffer
+     */
+    void receiveCallback(const uint8_t buffer[3]);
+
     ///
     std::map<uint8_t, Module*> moduleMap;
 

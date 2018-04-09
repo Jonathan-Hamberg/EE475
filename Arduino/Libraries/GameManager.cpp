@@ -1,12 +1,13 @@
 #include "GameManager.h"
 
-GameManager::GameManager(SPIManager* spiManager) {
+GameManager::GameManager(SPIManager* spiManager, GameState* gameState) {
     this->spiManager = spiManager;
-}
-
-const GameState& GameManager::getGameState() {
-    return gameState;
+    this->gameState = gameState;
 }
 
 void GameManager::playSound(PlaySound sound) {
+
+}
+
+void strike() {
 }

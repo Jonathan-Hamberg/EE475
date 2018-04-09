@@ -24,7 +24,7 @@ inline uint16_t GameState::setBit(uint16_t value, uint8_t n, bool b) {
 }
 
 GameState::GameState() {
-    this->gameState = MODE_INACTIVE;
+    this->gameState = GameMode::Inactive;
 }
 
 void GameState::init(uint16_t countdownTime, uint8_t maxStrikes, uint32_t seed) {
@@ -46,7 +46,7 @@ void GameState::init(uint16_t countdownTime, uint8_t maxStrikes, uint32_t seed) 
     }
     this->sn[5] = uint8_t(r.next() % 10 + '0');
     this->sn[6] = '\0';
-    this->gameState = MODE_INACTIVE;
+    this->gameState = GameMode::Inactive; 
 }
 
 uint8_t GameState::getStrikes() const {
@@ -81,7 +81,7 @@ const char *GameState::getSN() const {
     return this->sn;
 }
 
-uint8_t GameState::getGameState() const {
+GameMode GameState::getGameState() const {
     return this->gameState;
 }
 
@@ -97,7 +97,7 @@ void GameState::setCountdownTime(uint16_t countdownTime) {
     this->countdownTime = countdownTime;
 }
 
-void GameState::setGameStat(uint8_t gameState) {
+void GameState::setGameState(GameMode gameState) {
     this->gameState = gameState;
 }
 
@@ -182,71 +182,71 @@ void GameState::setRCA(bool value) {
 }
 
 bool GameState::checkSND() {
-    return getBit(this->indicators, GAME_STATE_IND_SND);
+    return getBit(this->indicators, uint8_t(GameIndicator::Snd));
 }
 
 bool GameState::checkCLR() {
-    return getBit(this->indicators, GAME_STATE_IND_CLR);
+    return getBit(this->indicators, uint8_t(GameIndicator::Clr));
 }
 
 bool GameState::checkCAR() {
-    return getBit(this->indicators, GAME_STATE_IND_CAR);
+    return getBit(this->indicators, uint8_t(GameIndicator::Car));
 }
 
 bool GameState::checkIND() {
-    return getBit(this->indicators, GAME_STATE_IND_IND);
+    return getBit(this->indicators, uint8_t(GameIndicator::Ind));
 }
 
 bool GameState::checkFRQ() {
-    return getBit(this->indicators, GAME_STATE_IND_FRQ);
+    return getBit(this->indicators, uint8_t(GameIndicator::Frq));
 }
 
 bool GameState::checkSIG() {
-    return getBit(this->indicators, GAME_STATE_IND_SIG);
+    return getBit(this->indicators, uint8_t(GameIndicator::Sig));
 }
 
 bool GameState::checkNSA() {
-    return getBit(this->indicators, GAME_STATE_IND_NSA);
+    return getBit(this->indicators, uint8_t(GameIndicator::Nsa));
 }
 
 bool GameState::checkMSA() {
-    return getBit(this->indicators, GAME_STATE_IND_MSA);
+    return getBit(this->indicators, uint8_t(GameIndicator::Msa));
 }
 
 bool GameState::checkTRN() {
-    return getBit(this->indicators, GAME_STATE_IND_TRN);
+    return getBit(this->indicators, uint8_t(GameIndicator::Trn));
 }
 
 bool GameState::checkBOB() {
-    return getBit(this->indicators, GAME_STATE_IND_BOB);
+    return getBit(this->indicators, uint8_t(GameIndicator::Bob));
 }
 
 bool GameState::checkFRK() {
-    return getBit(this->indicators, GAME_STATE_IND_FRK);
+    return getBit(this->indicators, uint8_t(GameIndicator::Frk));
 }
 
 bool GameState::checkDVI() {
-    return getBit(this->ports, GAME_STATE_PORT_DVI);
+    return getBit(this->ports, uint8_t(GamePort::Dvi));
 }
 
 bool GameState::checkParallel() {
-    return getBit(this->ports, GAME_STATE_PORT_PARALLEL);
+    return getBit(this->ports, uint8_t(GamePort::Parallel));
 }
 
 bool GameState::checkPS2() {
-    return getBit(this->ports, GAME_STATE_PORT_PS2);
+    return getBit(this->ports, uint8_t(GamePort::Ps2));
 }
 
 bool GameState::checkRJ45() {
-    return getBit(this->ports, GAME_STATE_PORT_RJ45);
+    return getBit(this->ports, uint8_t(GamePort::Rj45));
 }
 
 bool GameState::checkSerial() {
-    return getBit(this->ports, GAME_STATE_PORT_SERIAL);
+    return getBit(this->ports, uint8_t(GamePort::Serial));
 }
 
 bool GameState::checkRCA() {
-    return getBit(this->ports, GAME_STATE_PORT_RCA);
+    return getBit(this->ports, uint8_t(GamePort::Rca));
 }
 
 bool GameState::timeHasDigit(uint8_t digit) {

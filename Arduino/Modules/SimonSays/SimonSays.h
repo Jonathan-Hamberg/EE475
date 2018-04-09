@@ -8,7 +8,7 @@
 #include <Button.h>
 #include <ButtonManager.h>
 #include <LFSR.h>
-#include <TIMER.h>
+#include <Timer.h>
 #include <GameState.h>
 #include "GameModule.h"
 

@@ -7,13 +7,6 @@
 
 #include <stdint.h>
 
-/**
- *
- */
-struct SPIMessage {
-    uint8_t address;
-    uint16_t data;
-};
 
 
 
@@ -37,9 +30,15 @@ enum class TransmitOpCodes : uint8_t {
  */
 enum class ReceiveOpCodes : uint8_t {
     Ignored = 0,
-    GetMode,
-    Strikes,
+    Mode,
+    Sound,
     ModuleType,
+    StartGame,
+};
+
+enum class ExtraOpCodes : uint8_t {
+    HasMoreInformation = 0x01,
+    HasStrike = 0x02,
 };
 
 /**
@@ -111,6 +110,15 @@ enum class PlaySound : uint8_t {
     Sound3,
     Sound4,
     Sound5,
+};
+
+
+/**
+ *
+ */
+struct SPIReceiveMessage {
+    ReceiveOpCodes address;
+    uint16_t data;
 };
 
 #endif //DEFUSER_DEFINITIONS_H
