@@ -2,6 +2,7 @@
 #define GAME_STATE_H
 
 #include <stdint.h>
+#include <Definitions.h>
 
 /**
  * This is the Game State Object. It holds a local copy of the global game state.
@@ -12,31 +13,6 @@
  * 
  * @authors Daniel Predmore, Jonathan Hamberg, Christy Troung
  */
-
-#define MODE_INACTIVE 0
-#define MODE_ACTIVE 1
-#define GAME_DEFUSED 2
-#define MODE_EXPLODED 3
-#define MODE_DEMO 4
-
-#define GAME_STATE_IND_SND 0
-#define GAME_STATE_IND_CLR 1
-#define GAME_STATE_IND_CAR 2
-#define GAME_STATE_IND_IND 3
-#define GAME_STATE_IND_FRQ 4
-#define GAME_STATE_IND_SIG 5
-#define GAME_STATE_IND_NSA 6
-#define GAME_STATE_IND_MSA 7
-#define GAME_STATE_IND_TRN 8
-#define GAME_STATE_IND_BOB 9
-#define GAME_STATE_IND_FRK 10
-
-#define GAME_STATE_PORT_DVI 0
-#define GAME_STATE_PORT_PARALLEL 1
-#define GAME_STATE_PORT_PS2 2
-#define GAME_STATE_PORT_RJ45 3
-#define GAME_STATE_PORT_SERIAL 4
-#define GAME_STATE_PORT_RCA 5
 
 class GameState final {
   public:
@@ -68,7 +44,7 @@ class GameState final {
   uint8_t getPorts() const;
   uint8_t getBatteries() const;
   const char * getSN() const;
-  uint8_t getGameState() const;
+  GameMode getGameState() const;
 
   /**
    * These functions set the value of each of the bombs parameters
@@ -76,7 +52,7 @@ class GameState final {
   void setStrikes(uint8_t strikes);
   void setMaxStrikes(uint8_t maxStrikes);
   void setCountdownTime(uint16_t countdownTime);
-  void setGameStat(uint8_t gameState);
+  void setGameState(GameMode gameState);
   void setIndicators(uint16_t indicators);
   void setPorts(uint8_t ports);
   void setBat(uint8_t bat);
@@ -169,7 +145,7 @@ class GameState final {
   uint8_t ports;
   uint8_t bat;
   char sn[7];
-  uint8_t gameState;
+  GameMode gameState;
 };
 
 #endif // GAME_STATE_H

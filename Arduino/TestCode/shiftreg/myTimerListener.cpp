@@ -13,6 +13,7 @@ unsigned int MyTimerListener::onEvent(Timer *caller, unsigned int id, unsigned i
   lcd->setCursor(0, 0);
   lcd->print("LEDS  :");
   lcd->setCursor(8 + id, 0);
+  (void)(caller); // Unused parameter warning.
 
   int color = calls & 7;
 

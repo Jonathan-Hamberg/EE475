@@ -13,7 +13,7 @@ void ShiftOut::build(unsigned int reg_n, unsigned int m, const unsigned int *pin
   pinMode(srclk, OUTPUT);
 
   this->pins = new unsigned byte[m];
-  for (int i = 0; i < m; i++) {
+  for (unsigned int i = 0; i < m; i++) {
     this->pins[i] = pins[i];
     pinMode(pins[i], OUTPUT);
   }
@@ -26,7 +26,7 @@ void ShiftOut::build(unsigned int reg_n, unsigned int m, const unsigned int *pin
 void ShiftOut::setAll(bool value) {
   hasChanged = true;
   byte val = value ? ~0 : 0;
-  for (int i = 0; i < index(n, m); i++) {
+  for (unsigned int i = 0; i < index(n, m); i++) {
     values[i] = val;
   }
 }

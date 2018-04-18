@@ -73,6 +73,12 @@ void StateWrite() {
     IO_RC4_SetHigh();
 }
 
+void StateRead() {
+    // Toggle the OE low to high to write the data.
+    IO_RC3_SetLow();
+    IO_RC3_SetHigh();
+}
+
 /**
  * 
  */
@@ -106,7 +112,6 @@ void main(void) {
                 } else {
                     current_state = READ;
 
-
                     // Transition to the Read state.
                     StateTransitionRead();
                 }
@@ -122,8 +127,8 @@ void main(void) {
 
         switch (current_state) {
             case READ:
-                // Nothing is required to read the data other than setting the
-                // address.
+                // Set the control pins to write the data to the SRAM.
+                StateRead();
                 break;
             case WRITE:
                 // Set the control pins to write the data to the SRAM.

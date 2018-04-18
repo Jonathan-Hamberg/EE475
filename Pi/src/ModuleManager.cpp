@@ -1,7 +1,4 @@
 #include "ModuleManager.h"
-#include "Definitions.h"
-
-
 
 ModuleManager::ModuleManager(SPIManager *manager) {
     this->spiManager = manager;
@@ -18,7 +15,7 @@ uint16_t ModuleManager::getGlgobalSeed() {
 void ModuleManager::queryModules() {
 
     // Delete previous modules.
-    for(const auto &kv : moduleMap) {
+    for (const auto &kv : moduleMap) {
         delete kv.second;
     }
 
@@ -37,7 +34,7 @@ void ModuleManager::queryModules() {
         spiManager->selectCS(i);
 
         // Seed the global seed.  Create new seed for every possible module address.
-        uint16_t seed = uint16_t(rand());
+        auto seed = uint16_t(rand());
 
         // Construct the transmit structure message.
         *address = uint8_t(TransmitOpCodes::Ignored) | uint8_t(ReceiveOpCodes::ModuleType) << 4u;
@@ -60,19 +57,40 @@ void ModuleManager::queryModules() {
         }
 
         // If the module has been found then add it to the module map.
-        if(hasModule) {
+        if (hasModule) {
             auto *myModule = new Module();
+            // Store the module seed.
             myModule->setSeed(seed);
+            // Store the module type.
+            myModule->setModuleType(ModuleTypes(*data & 0xFFu));
+            // Add module to the connected map structure.
             moduleMap.emplace(i, myModule);
         }
     }
 }
 
-GameState ModuleManager::generateGameState() {
-    return GameState();
-}
+void ModuleManager::updateModules(TransmitOpCodes opCode, uint16_t data) {
 
-void ModuleManager::updateMode() {
+    uint8_t buffer[3];
+
+    // Set the transmit address.
+    buffer[0] = uint8_t(opCode);
+
+    // Set the transmit data.
+    *(uint16_t *) (&buffer[1]) = data;
+
+    // Transmit through every connected module.
+    for (const auto &module : moduleMap) {
+        // Set the chip select line to send the data.
+        spiManager->selectCS(module.first);
+
+        // Transmit the data.
+        spiManager->transfer(buffer, 3);
+
+        // Respond to the received data from the module.
+        this->receiveCallback(buffer);
+    }
+
 
 }
 
@@ -82,47 +100,58 @@ void ModuleManager::transmitGameState(const GameState &state) {
     uint8_t *address = buffer;
     auto data = (uint16_t *) (buffer + 1);
 
+    // Transmit game state to all modules.
+    updateModules(TransmitOpCodes::Mode, uint16_t(state.getGameState()));
+    updateModules(TransmitOpCodes::Countdown, state.getCountdownTime());
+    updateModules(TransmitOpCodes::MaxStrikes, state.getMaxStrikes());
+    updateModules(TransmitOpCodes::Indicators, state.getIndicators());
+    updateModules(TransmitOpCodes::Ports, state.getPorts());
+    updateModules(TransmitOpCodes::Battery, state.getBatteries());
+
+    // Transmit seeds to each of the individual modules.
     for (const auto &module : moduleMap) {
         // Set the chip select line to send the data.
         spiManager->selectCS(module.first);
-
-        // Transmit the mode to the module.
-        *address = uint8_t(TransmitOpCodes::Mode);
-        *data = uint8_t(GameMode::Inactive);
-        spiManager->transfer(buffer, 3);
 
         // Transmit the module seed.
         *address = uint8_t(TransmitOpCodes::Seed);
         *data = module.second->getSeed();
         spiManager->transfer(buffer, 3);
 
-        // Transmit the countdown time.
-        buffer[0] = uint8_t(TransmitOpCodes::Countdown);
-        *data = state.getCountdownTime();
-        spiManager->transfer(buffer, 3);
+        this->receiveCallback(buffer);
+    }
+}
 
-        // Transmit the max strikes.
-        *address = uint8_t(TransmitOpCodes::MakStrikes);
-        *data = state.getMaxStrikes();
-        spiManager->transfer(buffer, 3);
+void ModuleManager::playSound(PlaySound sound) {
+// TODO(jrh) play stuff.
+}
 
-        // Transmit the indicators.
-        *address = uint8_t(TransmitOpCodes::Indicators);
-        *data = state.getIndicators();
-        spiManager->transfer(buffer, 3);
 
-        // Transmit the ports.
-        *address = uint8_t(TransmitOpCodes::Ports);
-        *data = state.getPorts();
-        spiManager->transfer(buffer, 3);
+void ModuleManager::receiveCallback(const SPIReceiveMessage &msg) {
 
-        // Transmit the battery.
-        *address = uint8_t(TransmitOpCodes::Battery);
-        *data = state.getBatteries();
-        spiManager->transfer(buffer, 3);
+    switch (msg.address) {
+        case ReceiveOpCodes::Sound:
+            playSound(PlaySound(msg.data));
+            break;
+        case ReceiveOpCodes::Ignored:
+            break;
+        case ReceiveOpCodes::Mode:
+            break;
+        case ReceiveOpCodes::ModuleType:
+            break;
     }
 
 }
+
+void ModuleManager::receiveCallback(const uint8_t buffer[3]) {
+
+    // Store data into the structure.
+    SPIReceiveMessage msg{ReceiveOpCodes(buffer[0] >> 4u), *(uint16_t *) (&buffer[1])};
+
+    // Call the strongly typed receiveCallback.
+    receiveCallback(msg);
+}
+
 
 
 

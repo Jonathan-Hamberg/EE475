@@ -25,6 +25,8 @@
 #include "myTimerListener.h"
 #include "GameState.h"
 #include <LiquidCrystal.h>
+#include <SPIManager.h>
+#include <GameManager.h>
 
 #define DEBUG
 
@@ -40,6 +42,8 @@ lfsr r;
 MyTimerListener l(&led, &r, &lcd, 0);
 Timer t(8);
 GameState game;
+SPIManager spiManager;
+GameManager gameManager(&spiManager, &game);
 
 
 void setup() {
@@ -71,7 +75,7 @@ void setup() {
   Serial.print("Current Strikes: ");
   Serial.println(game.getStrikes());
   Serial.print("Current Game State: ");
-  Serial.println(game.getGameState());
+  Serial.println(uint8_t(game.getGameState()));
   Serial.print("SN : ");
   Serial.println(game.getSN());
   Serial.print("SN has vowel: ");

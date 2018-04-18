@@ -2,10 +2,17 @@
 #define DEFUSER_SPIMANAGER_H
 
 #include <inttypes.h>
+#include <Definitions.h>
+
 /**
  *
  */
 class SPIManager final {
+
+private:
+    ///
+    uint8_t CS;
+
 public:
     /**
      *
@@ -29,8 +36,6 @@ public:
      * @param size
      */
     void transfer(uint8_t* buffer, uint32_t size);
-private:
-    uint8_t CS;
 };
 
 

@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "SimonSays.h"
 
+
 #define LONG_DELAY 1500
 #define SHORT_DELAY 250
 
@@ -18,7 +19,6 @@ SimonSays::SimonSays(ShiftIn * in, ShiftOut * out, RGB_LED * led, ButtonManager 
   init(r.next());
   muteOutput();
   setMode(MODULE_OFF);
-  
   buttons->attachAllOnPress(&buttonListener);
   buttons->attachAllOnRelease(&buttonListener);
 }
@@ -131,20 +131,23 @@ bool SimonSays::SimonSaysButtonListener::setButtons() {
 }
 
 void SimonSays::SimonSaysButtonListener::offAction(Button * caller, ButtonEvent event) {
-  
+    (void)(caller);
+    (void)(event);
 }
 
 void SimonSays::SimonSaysButtonListener::demoAction(Button * caller, ButtonEvent event) {
-  
+    (void)(caller);
+    (void)(event);
 }
 
 void SimonSays::SimonSaysButtonListener::armedAction(Button * caller, ButtonEvent event) {
+    (void)(event);
   bool allDown = setButtons();
   if (event == ButtonEvent::PRESS) {
     //Serial.println("Button Pressed");
     parent->t->detachTimer(parent->currentTimer);
     parent->currentTimer = nullptr;
-    
+
     uint8_t vowelMap[] = VOWEL_MAP;
     uint8_t noVowelMap[] = NO_VOWEL_MAP;
     uint16_t index = caller->getID() + 4 * parent->game->getStrikes();
@@ -174,7 +177,7 @@ void SimonSays::SimonSaysButtonListener::armedAction(Button * caller, ButtonEven
       parent->count2 = 0;
       //send strike
     }
-    
+
   } else if (event == ButtonEvent::RELESE) {
     if (allDown && parent->currentTimer == nullptr) {
       parent->currentTimer = parent->t->attachTimer(&(parent->timerListener), LONG_DELAY, 0);
@@ -184,6 +187,7 @@ void SimonSays::SimonSaysButtonListener::armedAction(Button * caller, ButtonEven
 }
 
 void SimonSays::SimonSaysButtonListener::disarmedAction(Button * caller, ButtonEvent event) {
+    (void)(event);
   parent->out->set(caller->getID(), 0, false);
 }
 
@@ -192,9 +196,12 @@ SimonSays::SimonSaysTimerListener::SimonSaysTimerListener(SimonSays * parent) {
 }
 
 unsigned int SimonSays::SimonSaysTimerListener::onEvent(Timer * caller, unsigned int id, unsigned int calls) {
+    (void)(caller);
+    (void)(id);
+    (void)(calls);
   parent->count2 = 0;
-  
-  if (parent->displayCount & 1 == 1) {
+
+  if ((parent->displayCount & 1) == 1) {
     for (int i = 0; i < 4; i++) {
       parent->out->set(i, 0, false);
     }

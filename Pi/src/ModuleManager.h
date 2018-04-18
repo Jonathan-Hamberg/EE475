@@ -6,6 +6,7 @@
 #include "GameState.h"
 #include "Module.h"
 #include "SPIManager.h"
+#include "Definitions.h"
 
 /**
  *
@@ -38,13 +39,8 @@ public:
 
     /**
      *
-     * @return
      */
-    GameState generateGameState();
-    /**
-     *
-     */
-    void updateMode();
+    void updateModules(TransmitOpCodes opCode, uint16_t data);
 
     /**
      *
@@ -52,7 +48,26 @@ public:
      */
     void transmitGameState(const GameState &state);
 
+    /**
+     *
+     * @param sound
+     */
+    void playSound(PlaySound sound);
+
 private:
+
+    /**
+     *
+     * @param msg
+     */
+    void receiveCallback(const SPIReceiveMessage& msg);
+
+    /**
+     *
+     * @param buffer
+     */
+    void receiveCallback(const uint8_t buffer[3]);
+
     ///
     std::map<uint8_t, Module*> moduleMap;
 
