@@ -40,7 +40,7 @@ uint16_t address = 0;
  */
 void StateTransitionWrite() {
     // Disable the OE pin.
-    IO_RC3_SetHigh();
+    // IO_RC3_SetHigh();
 
     // Enable data_enable PORTB[3], enable ~data_enable PORTB[2]
     LATB = 0x08u | (LATB & ~0x0Cu);
@@ -57,7 +57,7 @@ void StateTransitionRead() {
     LATB = 0x04u | (LATB & ~0x0Cu);
 
     // Enable the OE pin.
-    IO_RC3_SetLow();
+    // IO_RC3_SetLow();
 
     // Turn off the LED control indicator.
     IO_RB5_SetLow();
@@ -68,14 +68,14 @@ void StateTransitionRead() {
  */
 void StateWrite() {
     // Toggle the WE low to high to write the data.
-    IO_RC4_SetLow();
-    IO_RC4_SetHigh();
+    // IO_RC4_SetLow();
+    // IO_RC4_SetHigh();
 }
 
 void StateRead() {
     // Toggle the OE low to high to write the data.
-    IO_RC3_SetLow();
-    IO_RC3_SetHigh();
+    // IO_RC3_SetLow();
+    // IO_RC3_SetHigh();
 }
 
 /**
@@ -90,6 +90,9 @@ void main(void) {
 
     // Disable the WE pin.
     IO_RC2_SetHigh();
+    
+    // Open the i2c master device.
+    i2c_error_t error =  i2c_open(0x55);
 
     // Enter the write state.
     StateTransitionWrite();
@@ -147,6 +150,10 @@ void main(void) {
 
         // 4ms delay.  Fill 1024 bytes in approximately 4s.
         __delay_ms(4);
+        
+        uint8_t buffer[3] = {0x01, 0x02, 0x03};
+        i2c_setBuffer(buffer, 3);
+        i2c_masterOperation(true);
 
     }
 }
