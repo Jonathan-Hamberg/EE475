@@ -1,6 +1,11 @@
 #ifndef GAME_MODULE_H
 #define GAME_MODULE_H
 
+#define MODULE_OFF 0
+#define MODULE_DEMO 1
+#define MODULE_ARMED 2
+#define MODULE_DISARMED 3
+
 class GameModule {
   public:
 

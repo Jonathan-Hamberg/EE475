@@ -1,12 +1,7 @@
 #include <Arduino.h>
 #include "SimonSays.h"
 
-#define MODE_OFF 0
-#define MODE_DEMO 1
-#define MODE_ARMED 2
-#define MODE_DISARMED 3
-
-#define LONG_DELAY 1000
+#define LONG_DELAY 1500
 #define SHORT_DELAY 250
 
 #define VOWEL_MAP {BLUE_INDEX, RED_INDEX, YELLOW_INDEX, GREEN_INDEX, YELLOW_INDEX, GREEN_INDEX, BLUE_INDEX, RED_INDEX, GREEN_INDEX, RED_INDEX, YELLOW_INDEX, BLUE_INDEX}
@@ -22,7 +17,7 @@ SimonSays::SimonSays(ShiftIn * in, ShiftOut * out, RGB_LED * led, ButtonManager 
   currentTimer = nullptr;
   init(r.next());
   muteOutput();
-  setMode(MODE_OFF);
+  setMode(MODULE_OFF);
   
   buttons->attachAllOnPress(&buttonListener);
   buttons->attachAllOnRelease(&buttonListener);
@@ -34,12 +29,12 @@ void SimonSays::init(uint32_t seed) {
     colors[i] = r.next() % 4;
   }
   muteOutput();
-  setMode(MODE_OFF);
+  setMode(MODULE_OFF);
 }
 
 void SimonSays::start() {
   muteOutput();
-  setMode(MODE_ARMED);
+  setMode(MODULE_ARMED);
   t->detachTimer(currentTimer);
   currentTimer = t->attachTimer(&timerListener, 0, 0);
   count = 0;
@@ -49,7 +44,7 @@ void SimonSays::start() {
 
 void SimonSays::demo() {
   muteOutput();
-  setMode(MODE_DEMO);
+  setMode(MODULE_DEMO);
   t->detachTimer(currentTimer);
   currentTimer = t->attachTimer(&timerListener, 0, 0);
   count = 3;
@@ -61,7 +56,7 @@ void SimonSays::demo() {
 
 void SimonSays::explode() {
   muteOutput();
-  setMode(MODE_OFF);
+  setMode(MODULE_OFF);
   t->detachTimer(currentTimer);
   currentTimer = nullptr;
 }
@@ -71,13 +66,13 @@ SimonSays::~SimonSays() {}
 void SimonSays::setMode(uint8_t mode) {
   this->mode = mode;
   switch (mode) {
-    case MODE_ARMED:
+    case MODULE_ARMED:
       led->set(0, LED_RED);
     break;
-    case MODE_DISARMED:
+    case MODULE_DISARMED:
       led->set(0, LED_GREEN);
     break;
-    case MODE_DEMO:
+    case MODULE_DEMO:
       led->set(0, LED_BLUE);
     break;
     default: break;
@@ -101,16 +96,16 @@ void SimonSays::SimonSaysButtonListener::onEvent(Button * caller, ButtonEvent ev
   //Serial.println("Called");
   //setButtons();
   switch (parent->mode) {
-    case MODE_OFF:
+    case MODULE_OFF:
       offAction(caller, event);
     break;
-    case MODE_DEMO:
+    case MODULE_DEMO:
       demoAction(caller, event);
     break;
-    case MODE_ARMED:
+    case MODULE_ARMED:
       armedAction(caller, event);
     break;
-    case MODE_DISARMED:
+    case MODULE_DISARMED:
       disarmedAction(caller, event);
     break;
     default:
@@ -168,7 +163,7 @@ void SimonSays::SimonSaysButtonListener::armedAction(Button * caller, ButtonEven
         parent->count2 = 0;
 
         if (parent->count == SIMON_SAYS_LENGTH) {
-          parent->setMode(MODE_DISARMED);
+          parent->setMode(MODULE_DISARMED);
           // send dissarmed signal
         }
       } else {
