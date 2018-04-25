@@ -1,6 +1,5 @@
 #include "GameManager.h"
 
-
 GameManager::GameManager(ModuleManager *moduleManager) {
     this->moduleManager = moduleManager;
 }
@@ -32,6 +31,7 @@ void GameManager::changeGameMode(GameMode mode) {
 
     // Set the new game mode.
     this->gameState.setGameState(mode);
+    up
 }
 
 void GameManager::processMessage() {

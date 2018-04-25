@@ -2,8 +2,8 @@
 
 #include <stdint.h>        /* For uint8_t definition */
 #include <stdbool.h>       /* For true/false definition */
-
 #include "mcc_generated_files/mcc.h"
+#include "mcc_generated_files/drivers/i2c_slave.h"
 
 /*
  * Definitions.
@@ -43,10 +43,10 @@ void StateTransitionWrite() {
     // IO_RC3_SetHigh();
 
     // Enable data_enable PORTB[3], enable ~data_enable PORTB[2]
-    LATB = 0x08u | (LATB & ~0x0Cu);
+    // LATB = 0x08u | (LATB & ~0x0Cu);
 
     // Turn on the LED control indicator.
-    IO_RB5_SetHigh();
+    // IO_RB5_SetHigh();
 }
 
 /**
@@ -54,13 +54,13 @@ void StateTransitionWrite() {
  */
 void StateTransitionRead() {
     // Disable data_enable PORTB[3], disable ~data_enable PORTB[2]
-    LATB = 0x04u | (LATB & ~0x0Cu);
+    // LATB = 0x04u | (LATB & ~0x0Cu);
 
     // Enable the OE pin.
     // IO_RC3_SetLow();
 
     // Turn off the LED control indicator.
-    IO_RB5_SetLow();
+    // IO_RB5_SetLow();
 }
 
 /**
@@ -85,24 +85,36 @@ void main(void) {
     // Initialize the system.
     SYSTEM_Initialize();
 
+    INTERRUPT_GlobalInterruptEnable();
+    INTERRUPT_PeripheralInterruptEnable();
+
     // Start the timer to poll the button.
     TMR0_StartTimer();
-
-    // Disable the WE pin.
-    IO_RC2_SetHigh();
-    
-    // Open the i2c master device.
-    i2c_error_t error =  i2c_open(0x55);
 
     // Enter the write state.
     StateTransitionWrite();
 
+    IO_RC2_SetLow();
+    
+    // Enable interrupts for I2C events.
+    mssp1_enableIRQ();
+    mssp2_enableIRQ();
+
     while (1) {
+
+        i2c_slave_open();
+
+        uint8_t buffer[] = {0x11, 0x22, 0x33};
+        i2c_writeNBytes(0x50, buffer, 3);
+        i2c_read1ByteRegister(0x50, 0x22);
+
+        //        i2c_slave_close();
+
         // Determine if the timer has overflowed.
         if (TMR0IF) {
             // Get the button state.  Polled every 16 milli-seconds.
             previous_button = current_button;
-            current_button = IO_RB4_GetValue();
+            // current_button = IO_RB4_GetValue();
 
             // Toggle the state machine state.
             if (!current_button && previous_button) {
@@ -144,17 +156,8 @@ void main(void) {
         // Increment the address counter.
         address++;
 
-        // Assign the address to the SRAM.
-        LATC = (uint8_t) ((address >> 8 & 0x07u) | (LATC & ~0x07u));
-        LATA = (uint8_t) (address & 0xFF);
-
         // 4ms delay.  Fill 1024 bytes in approximately 4s.
         __delay_ms(4);
-        
-        uint8_t buffer[3] = {0x01, 0x02, 0x03};
-        i2c_setBuffer(buffer, 3);
-        i2c_masterOperation(true);
-
     }
 }
 

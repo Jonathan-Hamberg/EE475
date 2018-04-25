@@ -4,6 +4,7 @@ project(defuser)
 
 # Use C++ 11 standard.
 set(CMAKE_CXX_STANDARD  11)
+set(CMAKE_EXPORT_COMPILE_COMMANDS)
 
 include_directories(../Arduino/Libraries)
 
