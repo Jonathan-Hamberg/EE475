@@ -106,6 +106,7 @@ void main(void) {
 
         uint8_t buffer[] = {0x11, 0x22, 0x33};
         i2c_writeNBytes(0x50, buffer, 3);
+        
         i2c_read1ByteRegister(0x50, 0x22);
 
         //        i2c_slave_close();
