@@ -1,23 +1,15 @@
-/* 
- * File:   communication.h
- * Author: jonat
- *
- * Created on April 25, 2018, 12:12 PM
- */
-
 #ifndef COMMUNICATION_H
 #define	COMMUNICATION_H
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
+#define COMMAND_STATUS_GET      0x00
+#define COMMAND_PROBE_LAUNCH    0x01
+#define COMMAND_PROBE_DATA      0x02
+#define COMMAND_DATA_REMAINING  0x03
 
-
-
-
-#ifdef	__cplusplus
-}
-#endif
+#define STATUS_GET_NONE                 0x00
+#define STATUS_GET_REQUEST_TO_TRANSFER  0x01
+#define STATUS_GET_READY_TO_TRANSFER    0x02
+#define STATUS_GET_PROBE_LANDED         0x03
 
 #endif	/* COMMUNICATION_H */
 

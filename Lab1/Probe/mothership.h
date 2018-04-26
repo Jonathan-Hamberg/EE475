@@ -1,23 +1,20 @@
-/* 
- * File:   mothership.h
- * Author: jonat
- *
- * Created on April 25, 2018, 12:12 PM
- */
-
 #ifndef MOTHERSHIP_H
 #define	MOTHERSHIP_H
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
+typedef enum {
+    MOTHERSHIP_READ = 0,
+    MOTHERSHIP_WRITE
+} MothershipState;
 
+/**
+ * 
+ */
+void mothership_setup();
 
-
-
-#ifdef	__cplusplus
-}
-#endif
+/**
+ * 
+ */
+void mothership_loop();
 
 #endif	/* MOTHERSHIP_H */
 

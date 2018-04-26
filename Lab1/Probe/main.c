@@ -97,7 +97,6 @@ void main(void) {
     IO_RC2_SetLow();
     
     // Enable interrupts for I2C events.
-    mssp1_enableIRQ();
     mssp2_enableIRQ();
 
     while (1) {

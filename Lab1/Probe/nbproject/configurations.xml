@@ -21,6 +21,8 @@
       <itemPath>probe.h</itemPath>
       <itemPath>mothership.h</itemPath>
       <itemPath>communication.h</itemPath>
+      <itemPath>sram.h</itemPath>
+      <itemPath>camera.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -48,6 +50,8 @@
       <itemPath>probe.c</itemPath>
       <itemPath>mothership.c</itemPath>
       <itemPath>communication.c</itemPath>
+      <itemPath>sram.c</itemPath>
+      <itemPath>camera.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
