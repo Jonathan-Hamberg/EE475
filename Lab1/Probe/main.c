@@ -72,55 +72,6 @@ volatile uint8_t flag_probe_launched;
 volatile uint8_t probe_command = COMMAND_STATUS_GET;
 volatile uint8_t probe_status = STATUS_GET_NONE;
 
-void i2cReadInterrupt(void) {
-//    probe_command = i2c2_driver_getRXData();
-
-    switch (probe_command) {
-        case COMMAND_STATUS_GET:
-            break;
-        case COMMAND_PROBE_LAUNCH:
-            current_state = PROBE_LAUNCHED;
-            //i2c_slave_writeData = STATUS_PROBE_LAUNCHED;
-            launchedCountdownTimer = 1000;
-            break;
-        case COMMAND_PROBE_DATA:
-            break;
-        case COMMAND_DATA_REMAINING:
-            break;
-        case COMMAND_CAMERA_STATUS:
-            break;
-        default:
-            break;
-    }
-}
-
-void i2cWriteInterrupt(void) {
-    //    i2c2_driver_TXData(probe_status);
-    //i2c2_driver_TXData(0x32);
-
-    //    switch (probe_command) {
-    //        case COMMAND_STATUS_GET:
-    //            i2c2_driver_TXData(probe_status);
-    //            break;
-    //        case COMMAND_PROBE_DATA:
-    //            if (probe_data_address < 16) {
-    //                // TODO(jrh) roll over the address when greater than 16
-    //                i2c2_driver_TXData(probe_data_buffer[probe_data_address++]);
-    //            } else {
-    //
-    //            }
-    //            break;
-    //        case COMMAND_DATA_REMAINING:
-    //            // TODO(jrh) make sure this section is correct.
-    //            i2c2_driver_TXData(16 - probe_data_section);
-    //            break;
-    //        default:
-    //            i2c2_driver_TXData(0x01);
-    //            break;
-    //    }
-
-}
-
 void main(void) {
     // Initialize the system.
     SYSTEM_Initialize();
@@ -145,8 +96,6 @@ void main(void) {
             previous_button = current_button;
 
             sramWrite(address, address & 0xFF);
-
-
 
             uint8_t data = sramRead(address);
             if (data == address & 0xFF) {

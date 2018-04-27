@@ -20,6 +20,87 @@ volatile uint8_t probe_data_section[SECTION_SIZE];
 // Tracking probe state
 volatile uint8_t probe_status;
 
+uint8_t I2C_ReadCommand(uint8_t command) {
+        I2C2_MESSAGE_STATUS status = I2C2_MESSAGE_PENDING;
+        
+        uint8_t buffer[1];
+        buffer[0] = command;
+
+        // write one byte to EEPROM (3 is the number of bytes to write)
+        I2C2_MasterWrite(buffer,
+                1,
+                0x50,
+                &status);
+
+        PIR3bits.SSP2IF = true;
+
+        // wait for the message to be sent or status has changed.
+        while (status == I2C2_MESSAGE_PENDING);
+        
+        
+        // write one byte to EEPROM (3 is the number of bytes to write)
+        I2C2_MasterRead(buffer,
+                1,
+                0x50,
+                &status);
+
+        PIR3bits.SSP2IF = true;
+
+        // wait for the message to be sent or status has changed.
+        while (status == I2C2_MESSAGE_PENDING);
+        
+        // Return the message from the slave.
+        return buffer[0];
+        
+}
+
+void I2C_WriteCommand(uint8_t command) {
+            I2C2_MESSAGE_STATUS status = I2C2_MESSAGE_PENDING;
+        
+        uint8_t buffer[1];
+        buffer[0] = command;
+
+        // write one byte to EEPROM (3 is the number of bytes to write)
+        I2C2_MasterWrite(buffer,
+                1,
+                0x50,
+                &status);
+
+        PIR3bits.SSP2IF = true;
+
+        // wait for the message to be sent or status has changed.
+        while (status == I2C2_MESSAGE_PENDING);
+}
+
+void I2C_ReadData(uint8_t* buffer, uint8_t command, uint8_t size) {
+        I2C2_MESSAGE_STATUS status = I2C2_MESSAGE_PENDING;
+        
+        buffer[0] = command;
+        
+        // write one byte to EEPROM (3 is the number of bytes to write)
+        I2C2_MasterWrite(buffer,
+                1,
+                0x50,
+                &status);
+
+        PIR3bits.SSP2IF = true;
+
+        // wait for the message to be sent or status has changed.
+        while (status == I2C2_MESSAGE_PENDING);
+        
+        
+        // write one byte to EEPROM (3 is the number of bytes to write)
+        I2C2_MasterRead(buffer,
+                size,
+                0x50,
+                &status);
+
+        PIR3bits.SSP2IF = true;
+
+        // wait for the message to be sent or status has changed.
+        while (status == I2C2_MESSAGE_PENDING);
+}
+
 void mothership_read_data() {
     for (int section = 0; section < SECTIONS; section++) {
         //        probe_status = i2c_read1ByteRegister(ADDRESS, COMMAND_STATUS_GET);
