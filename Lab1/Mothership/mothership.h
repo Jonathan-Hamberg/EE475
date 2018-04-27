@@ -2,8 +2,9 @@
 #define	MOTHERSHIP_H
 
 typedef enum {
-    MOTHERSHIP_READ = 0,
-    MOTHERSHIP_WRITE
+    MOTHERSHIP_CHECK_PROBE = 0,
+    MOTHERSHIP_RECIEVE_DATA,
+    MOTHERSHIP_COLLECT_DATA        
 } MothershipState;
 
 /**

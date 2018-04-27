@@ -12,10 +12,8 @@
         <itemPath>mcc_generated_files/mcc.h</itemPath>
         <itemPath>mcc_generated_files/drivers/i2c_master.h</itemPath>
         <itemPath>mcc_generated_files/drivers/i2c_types.h</itemPath>
-        <itemPath>mcc_generated_files/drivers/i2c_slave.h</itemPath>
         <itemPath>mcc_generated_files/drivers/i2c_simple_master.h</itemPath>
         <itemPath>mcc_generated_files/i2c2_driver.h</itemPath>
-        <itemPath>mcc_generated_files/i2c1_driver.h</itemPath>
         <itemPath>mcc_generated_files/interrupt_manager.h</itemPath>
       </logicalFolder>
       <itemPath>probe.h</itemPath>
@@ -39,10 +37,8 @@
         <itemPath>mcc_generated_files/mcc.c</itemPath>
         <itemPath>mcc_generated_files/drivers/i2c_master.c</itemPath>
         <itemPath>mcc_generated_files/drivers/i2c_types.c</itemPath>
-        <itemPath>mcc_generated_files/drivers/i2c_slave.c</itemPath>
         <itemPath>mcc_generated_files/drivers/i2c_simple_master.c</itemPath>
         <itemPath>mcc_generated_files/i2c2_driver.c</itemPath>
-        <itemPath>mcc_generated_files/i2c1_driver.c</itemPath>
         <itemPath>mcc_generated_files/interrupt_manager.c</itemPath>
       </logicalFolder>
       <itemPath>configuration_bits.c</itemPath>
