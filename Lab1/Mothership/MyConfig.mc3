@@ -1,12 +1,12 @@
 <config configVersion="1.1" device="PIC18F25K22" coreVersion="4.35">
    <usedClasses class="java.util.HashMap">
       <entry>
-         <string>System Module</string>
-         <string>class com.microchip.mcc.mcu8.systemManager.SystemManager</string>
-      </entry>
-      <entry>
          <string>TMR0</string>
          <string>class com.microchip.mcc.mcu8.modules.tmr0_v1.TMR0</string>
+      </entry>
+      <entry>
+         <string>System Module</string>
+         <string>class com.microchip.mcc.mcu8.systemManager.SystemManager</string>
       </entry>
       <entry>
          <string>INTERNAL OSCILLATOR</string>
@@ -21,12 +21,12 @@
          <string>class com.microchip.mcc.mcu8.pinManager.PinManager</string>
       </entry>
       <entry>
-         <string>RESET</string>
-         <string>class com.microchip.mcc.mcu8.systemManager.reset.RESET</string>
-      </entry>
-      <entry>
          <string>MSSP2</string>
          <string>class com.microchip.mcc.mcu8.modules.mssp.MSSP</string>
+      </entry>
+      <entry>
+         <string>RESET</string>
+         <string>class com.microchip.mcc.mcu8.systemManager.reset.RESET</string>
       </entry>
       <entry>
          <string>Interrupt Module</string>
@@ -3608,20 +3608,20 @@
          <hash>4334df896e43604604f27495c5f5fca3a710e01be09f2dcabe9130fc167571fc</hash>
       </entry>
       <entry>
-         <file>mcc_generated_files\tmr0.h</file>
-         <hash>19d72d969a8936bd82fe9c3e7e55e19cf0ec4255d0d81393970d4a3946f68d75</hash>
-      </entry>
-      <entry>
          <file>mcc_generated_files\i2c2.c</file>
          <hash>e2fa48e10aff357a5a1347c383a081261dde5761ef96a40cbcf041b83b479ea5</hash>
       </entry>
       <entry>
-         <file>mcc_generated_files\pin_manager.h</file>
-         <hash>50707f36f28500d0d173bab517f63fd717072e644857da0815b3a8e9ce840120</hash>
+         <file>mcc_generated_files\tmr0.h</file>
+         <hash>19d72d969a8936bd82fe9c3e7e55e19cf0ec4255d0d81393970d4a3946f68d75</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\i2c2.h</file>
          <hash>caf621f66485a9759ca182ac5db96fae28d51117a57c9b02d2af1878b9b9f23b</hash>
+      </entry>
+      <entry>
+         <file>mcc_generated_files\pin_manager.h</file>
+         <hash>50707f36f28500d0d173bab517f63fd717072e644857da0815b3a8e9ce840120</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\mcc.c</file>

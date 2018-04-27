@@ -3,7 +3,6 @@
 
 typedef enum {
     MOTHERSHIP_CHECK_PROBE = 0,
-    MOTHERSHIP_RECIEVE_DATA,
     MOTHERSHIP_COLLECT_DATA        
 } MothershipState;
 
