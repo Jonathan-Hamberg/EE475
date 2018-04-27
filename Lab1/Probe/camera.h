@@ -32,5 +32,10 @@ uint8_t isOperational(uint8_t cameraNumber);
  */
 uint8_t getCameraData(uint8_t cameraNumber, uint8_t* data);
 
+/**
+ * 
+ */
+void updateCameraLED();
+
 #endif	/* CAMERA_H */
 
