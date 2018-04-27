@@ -6,10 +6,11 @@
 #define COMMAND_PROBE_DATA      0x02
 #define COMMAND_DATA_REMAINING  0x03
 
-#define STATUS_GET_NONE                 0x00
-#define STATUS_GET_REQUEST_TO_TRANSFER  0x01
-#define STATUS_GET_READY_TO_TRANSFER    0x02
-#define STATUS_GET_PROBE_LANDED         0x03
+#define STATUS_GET_NONE                         0x00
+#define STATUS_GET_REQUEST_TO_TRANSFER          0x01
+#define STATUS_GET_READY_TO_TRANSFER            0x02
+#define STATUS_GET_READY_TO_TRANSFER_SECTION    0x03
+#define STATUS_GET_PROBE_LANDED                 0x04
 
 #endif	/* COMMUNICATION_H */
 
