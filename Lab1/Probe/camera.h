@@ -20,6 +20,13 @@ void setCameraState(uint8_t cameraNumber, CameraState state);
 /**
  * 
  * @param cameraNumber
+ * @return 
+ */
+CameraState getCameraState(uint8_t cameraNumber);
+
+/**
+ * 
+ * @param cameraNumber
  * @return 1 true, 0 false
  */
 uint8_t isOperational(uint8_t cameraNumber);
@@ -27,10 +34,29 @@ uint8_t isOperational(uint8_t cameraNumber);
 /**
  * 
  * @param cameraNumber
- * @param data
- * @return 1 error, 0 success
+ * @return 
  */
-uint8_t getCameraData(uint8_t cameraNumber, uint8_t* data);
+uint8_t getCameraData(uint8_t cameraNumber);
+
+/**
+ * 
+ * @param cameraNumber
+ * @return 
+ */
+uint8_t startFilming(uint8_t cameraNumber);
+
+/**
+ * 
+ * @param cameraNumber
+ * @return 
+ */
+uint8_t cameraHasData(uint8_t cameraNumber);
+/**
+ * 
+ * @param currentCamera
+ * @return 
+ */
+int8_t findOtherCamera(uint8_t currentCamera);
 
 /**
  * 

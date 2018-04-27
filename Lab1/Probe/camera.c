@@ -10,6 +10,16 @@ void setCameraState(uint8_t cameraNumber, CameraState state) {
     }
 }
 
+CameraState getCameraState(uint8_t cameraNumber) {
+    if(cameraNumber > 2) {
+        return CAMERA_MALFUNCTION;
+    }
+    
+    // Return the camera state.
+    return camera_states[cameraNumber];
+}
+
+
 uint8_t isOperational(uint8_t cameraNumber) {
     if (cameraNumber <= 2) {
         return camera_states[cameraNumber] != CAMERA_MALFUNCTION;
@@ -18,20 +28,52 @@ uint8_t isOperational(uint8_t cameraNumber) {
     }
 }
 
-uint8_t getCameraData(uint8_t cameraNumber, uint8_t* data) {
+uint8_t cameraHasData(uint8_t cameraNumber) {
     if (cameraNumber > 2) {
         return 0;
     }
 
+    return camera_states[cameraNumber] == CAMERA_FILMING;
+}
+
+uint8_t getCameraData(uint8_t cameraNumber) {
+    // Only three valid cameras on the system.
+    if (cameraNumber > 2) {
+        return 0;
+    }
+
+    // Cannot collect data if the camera is not filming.
     if (camera_states[cameraNumber] != CAMERA_FILMING) {
         return 0;
     }
 
-    *data = cameraNumber;
+    // Camera data is just the number of the camera.
+    return cameraNumber;
+}
 
+uint8_t startFilming(uint8_t cameraNumber) {
+    if(cameraNumber > 2) {
+        return 0;
+    }
+    
+    if(camera_states[cameraNumber] == CAMERA_MALFUNCTION) {
+        return 0;
+    }
+    
+    setCameraState(cameraNumber, CAMERA_FILMING);
+    
     return 1;
 }
 
+int8_t findOtherCamera(uint8_t currentCamera) {
+    for(uint8_t i = 0;i < 2;i++) {
+        if(i != currentCamera && camera_states[i] != CAMERA_MALFUNCTION) {
+            return i;
+        }
+    }
+    
+    return -1;
+}
 void updateCameraLED() {
 
     for (int8_t i = 2; i >= 0; i--) {

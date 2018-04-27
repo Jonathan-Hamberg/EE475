@@ -3,8 +3,6 @@
 #include <stdint.h>        /* For uint8_t definition */
 #include <stdbool.h>       /* For true/false definition */
 #include "mcc_generated_files/mcc.h"
-#include "mcc_generated_files/drivers/i2c_slave.h"
-#include "mcc_generated_files/i2c2_driver.h"
 
 #include "sram.h"
 #include "communication.h"
@@ -18,6 +16,10 @@ typedef enum {
     READ,
     WRITE
 } State;
+
+#define BUFFER_100 1024
+#define BUFFER_90 922
+#define BUFFER_80 819
 
 /**
  * 
@@ -50,8 +52,16 @@ uint8_t probe_data_buffer[16];
 uint16_t camera_one_address = 0;
 uint16_t camera_two_address = 1024;
 
-uint8_t active_camera_index = 0;
-uint16_t active_camera_address = 0;
+
+uint8_t camera_active_index = 0;
+uint16_t camera_active_address = 0;
+uint16_t camera_active_base = 0;
+
+uint8_t camera_store_index = 0;
+uint16_t camera_store_address = 0;
+uint16_t camera_store_base = 1024;
+
+uint16_t launchedCountdownTimer;
 
 // Flags to indicate different operations.
 volatile uint8_t flag_read_section;
@@ -63,14 +73,15 @@ volatile uint8_t probe_command = COMMAND_STATUS_GET;
 volatile uint8_t probe_status = STATUS_GET_NONE;
 
 void i2cReadInterrupt(void) {
-    probe_command = i2c2_driver_getRXData();
+//    probe_command = i2c2_driver_getRXData();
 
     switch (probe_command) {
         case COMMAND_STATUS_GET:
             break;
         case COMMAND_PROBE_LAUNCH:
             current_state = PROBE_LAUNCHED;
-            i2c_slave_writeData = STATUS_PROBE_LAUNCHED;
+            //i2c_slave_writeData = STATUS_PROBE_LAUNCHED;
+            launchedCountdownTimer = 1000;
             break;
         case COMMAND_PROBE_DATA:
             break;
@@ -84,8 +95,8 @@ void i2cReadInterrupt(void) {
 }
 
 void i2cWriteInterrupt(void) {
-//    i2c2_driver_TXData(probe_status);
-    i2c2_driver_TXData(0x32);
+    //    i2c2_driver_TXData(probe_status);
+    //i2c2_driver_TXData(0x32);
 
     //    switch (probe_command) {
     //        case COMMAND_STATUS_GET:
@@ -120,11 +131,11 @@ void main(void) {
     // Start the timer to poll the button.
     TMR0_StartTimer();
 
-
-    mssp2_enableIRQ();
-    i2c_slave_open();
-  //  i2c_slave_setWriteIntHandler(i2cReadInterrupt);
-//    i2c_slave_setReadIntHandler(i2cWriteInterrupt);
+    
+    
+    //    i2c_slave_open();
+    //  i2c_slave_setWriteIntHandler(i2cReadInterrupt);
+    //    i2c_slave_setReadIntHandler(i2cWriteInterrupt);
 
     while (1) {
 
@@ -134,6 +145,7 @@ void main(void) {
             previous_button = current_button;
 
             sramWrite(address, address & 0xFF);
+
 
 
             uint8_t data = sramRead(address);
@@ -175,6 +187,52 @@ void main(void) {
             //            }
 
 
+            // Handle the PROBE_LAUNCHED state.
+            if (current_state == PROBE_LAUNCHED) {
+                if (launchedCountdownTimer-- == 0) {
+                    // Change the state to the landed position.
+                    current_state = PROBE_LANDED;
+                    // Set the update message to send back to the mothership.
+                  //  i2c_slave_writeData = STATUS_GET_PROBE_LANDED;
+                }
+            }
+
+            // Handle the PROBE_LANDED state.
+            if (current_state == PROBE_LANDED) {
+                if (camera_active_address >= BUFFER_100) {
+                   // Stop filming with the active camera.
+                    setCameraState(camera_active_index, CAMERA_SHUTDOWN);
+                    
+                    // Replace the store camera with the active camera.
+                    camera_store_address = 0;
+                    camera_store_base = camera_active_base;
+                    camera_store_index = camera_active_index;
+                    
+                    // Find new parameters for the active camera.
+                    camera_active_index = findOtherCamera(camera_active_index);
+                    camera_active_base = 1024 - camera_active_base;
+                    camera_active_address = 0;
+                    
+                    
+                } else if (camera_active_address >= BUFFER_90) {
+                    if(!startFilming(camera_store_index)) {
+                        // TODO(jrh) handle the error case.
+                    }
+                } else if (camera_active_address >= BUFFER_80) {
+                    // Send the request to transfer command to the mother-ship.
+//                    i2c_slave_writeData = STATUS_GET_REQUEST_TO_TRANSFER;
+                } else {
+
+                }
+
+                if (cameraHasData(camera_active_index)) {
+                    // Write the current camera data to the SRAM.
+                    sramWrite(camera_active_base + camera_active_address++,
+                            getCameraData(camera_active_index));
+                } else {
+                    // TODO(jrh) handle malfunctioning camera.
+                }
+            }
 
             // clear the TMR0 interrupt flag
             TMR0IF = 0;

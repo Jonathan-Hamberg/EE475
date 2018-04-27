@@ -10,11 +10,9 @@
         <itemPath>mcc_generated_files/tmr0.h</itemPath>
         <itemPath>mcc_generated_files/pin_manager.h</itemPath>
         <itemPath>mcc_generated_files/mcc.h</itemPath>
-        <itemPath>mcc_generated_files/drivers/i2c_slave.h</itemPath>
-        <itemPath>mcc_generated_files/i2c2_driver.h</itemPath>
         <itemPath>mcc_generated_files/interrupt_manager.h</itemPath>
+        <itemPath>mcc_generated_files/i2c2.h</itemPath>
       </logicalFolder>
-      <itemPath>mothership.h</itemPath>
       <itemPath>communication.h</itemPath>
       <itemPath>sram.h</itemPath>
       <itemPath>camera.h</itemPath>
@@ -32,14 +30,10 @@
         <itemPath>mcc_generated_files/tmr0.c</itemPath>
         <itemPath>mcc_generated_files/pin_manager.c</itemPath>
         <itemPath>mcc_generated_files/mcc.c</itemPath>
-        <itemPath>mcc_generated_files/drivers/i2c_slave.c</itemPath>
-        <itemPath>mcc_generated_files/i2c2_driver.c</itemPath>
         <itemPath>mcc_generated_files/interrupt_manager.c</itemPath>
+        <itemPath>mcc_generated_files/i2c2.c</itemPath>
       </logicalFolder>
-      <itemPath>configuration_bits.c</itemPath>
       <itemPath>main.c</itemPath>
-      <itemPath>mothership.c</itemPath>
-      <itemPath>communication.c</itemPath>
       <itemPath>sram.c</itemPath>
       <itemPath>camera.c</itemPath>
     </logicalFolder>
