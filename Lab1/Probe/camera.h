@@ -10,19 +10,20 @@ typedef enum {
     CAMERA_MALFUNCTION,
 } CameraState;
 
+
+/**
+ * 
+ * @param cameraNumber
+ * @param state
+ */
+void privateSetCameraState(uint8_t cameraNumber, CameraState state);
+
 /**
  * 
  * @param cameraNumber
  * @param state
  */
 void setCameraState(uint8_t cameraNumber, CameraState state);
-
-/**
- * 
- * @param cameraNumber
- * @return 
- */
-CameraState getCameraState(uint8_t cameraNumber);
 
 /**
  * 

@@ -5,20 +5,28 @@ CameraState camera_states[3] = {CAMERA_SHUTDOWN,
     CAMERA_SHUTDOWN};
 
 void setCameraState(uint8_t cameraNumber, CameraState state) {
-    if (cameraNumber <= 2) {
+    // Cannot set camera state that does not exist.
+    if (cameraNumber > 2) {
+        return;
+    }
+    
+    // User cannot set the malfunction state.
+    if(state == CAMERA_MALFUNCTION) {
+        return;
+    }
+    
+    // Cannot change the state of the camera is falfunctioning.
+    if(camera_states[cameraNumber] != CAMERA_MALFUNCTION) {
         camera_states[cameraNumber] = state;
     }
 }
 
-CameraState getCameraState(uint8_t cameraNumber) {
-    if(cameraNumber > 2) {
-        return CAMERA_MALFUNCTION;
+void privateSetCameraState(uint8_t cameraNumber, CameraState state) {
+    // If the camera number is valid, set the internal camera state.
+    if (cameraNumber <= 2) {
+        camera_states[cameraNumber] = state;
     }
-    
-    // Return the camera state.
-    return camera_states[cameraNumber];
 }
-
 
 uint8_t isOperational(uint8_t cameraNumber) {
     if (cameraNumber <= 2) {
@@ -52,28 +60,30 @@ uint8_t getCameraData(uint8_t cameraNumber) {
 }
 
 uint8_t startFilming(uint8_t cameraNumber) {
-    if(cameraNumber > 2) {
+    // Cannot set camera state that does not exist.
+    if (cameraNumber > 2) {
         return 0;
     }
     
-    if(camera_states[cameraNumber] == CAMERA_MALFUNCTION) {
-        return 0;
+    // Cannot change the state of the camera is malfunctioning.
+    if(camera_states[cameraNumber] != CAMERA_MALFUNCTION) {
+        camera_states[cameraNumber] = CAMERA_FILMING;
+        return 1;
     }
     
-    setCameraState(cameraNumber, CAMERA_FILMING);
-    
-    return 1;
+    return 0;
 }
 
 int8_t findOtherCamera(uint8_t currentCamera) {
-    for(uint8_t i = 0;i < 2;i++) {
-        if(i != currentCamera && camera_states[i] != CAMERA_MALFUNCTION) {
+    for (uint8_t i = 0; i < 3; i++) {
+        if (i != currentCamera && camera_states[i] != CAMERA_MALFUNCTION) {
             return i;
         }
     }
-    
+
     return -1;
 }
+
 void updateCameraLED() {
 
     for (int8_t i = 2; i >= 0; i--) {

@@ -35,16 +35,17 @@ void sramWrite(uint16_t address, uint8_t data) {
 
     // Set the upper 3 bits of the address.
     LATC = (LATC & ~0x70) | ((address >> 4) & 0x70);
-
-    // Enable PORTA as output.
-    TRISA = 0x00;
-
-    // Write data to PORTA.
-    LATA = data;
+    
 
     // Enable the SRAM module.
     SRAM_CE_SetLow();
 
+    // Enable PORTA as output.
+    TRISA = 0x00;
+    
+    // Write data to PORTA.
+    LATA = data;
+    
     // Toggle WE.
     SRAM_WE_SetLow();
     SRAM_WE_SetHigh();
@@ -73,6 +74,10 @@ uint8_t sramRead(uint16_t address) {
     // Toggle WE.
     SRAM_OE_SetLow();
     
+    NOP();
+    NOP();
+    NOP();
+    
     // Write data to PORTA.
     data = PORTA;
     
@@ -80,4 +85,6 @@ uint8_t sramRead(uint16_t address) {
 
     // Disable chip enable.
     SRAM_CE_SetHigh();
+    
+    return data;
 }
