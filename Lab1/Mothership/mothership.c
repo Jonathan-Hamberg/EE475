@@ -6,14 +6,13 @@
 #include "communication.h"
 
 #include "mcc_generated_files/mcc.h"
-
+#include "mcc_generated_files/eusart1.h"
 
 #define ADDRESS 0x50
 #define SECTION_SIZE 16
 #define SECTIONS 64
 #define BYTE 1
-
-
+#define EARTH_BUFFER_SIZE 3
 
 MothershipState mothership_state = MOTHERSHIP_CHECK_PROBE;
 
@@ -26,6 +25,10 @@ volatile uint8_t probe_status;
 
 // Mothership commands
 volatile uint8_t mothership_command;
+
+// Earth commands
+volatile uint8_t earth_command = 0;
+volatile char * earth_console; 
 
 uint8_t I2C_ReadCommand(uint8_t command) {
         I2C2_MESSAGE_STATUS status = I2C2_MESSAGE_PENDING;
@@ -108,13 +111,39 @@ void I2C_ReadData(uint8_t* buffer, uint8_t command, uint8_t size) {
         while (status == I2C2_MESSAGE_PENDING);
 }
 
-void mothership_read_data() {
-    for (int section = 0; section < SECTIONS; section++) {
-        //        probe_status = i2c_read1ByteRegister(ADDRESS, COMMAND_STATUS_GET);
-        if (probe_status == STATUS_GET_READY_TO_TRANSFER_SECTION) {
-            //            i2c_readDataBlock(ADDRESS, COMMAND_PROBE_DATA, probe_data_section, SECTION_SIZE);
-        }
-        __delay_us(500);
+/**
+ * Returns the byte with odd parity at the MSB. 
+ */
+uint8_t getOddParity(uint8_t byte) {
+    byte ^= (byte >> 4);  
+    byte ^= (byte >> 2); 
+    byte ^= (byte >> 1);  
+    return (byte & 1); 
+}
+
+
+uint8_t RS232_ReadByte() {
+    return EUSART1_Read() & 0x7F; 
+}
+
+void RS232_WriteByte(uint8_t byte) {
+    uint8_t parity = getOddParity(byte);
+    EUSART1_Write((parity << 7) | byte);
+}
+
+
+void RS232_WriteNByte(uint8_t * buffer, uint8_t size) {
+    for(int byte = 0; byte < size; byte++) {
+        RS232_WriteByte(*buffer);
+        buffer++;
+    }
+}
+
+
+void RS232_WriteString(char * string) {
+    while(*string != NULL) {
+        RS232_WriteByte(*string);
+        string++; 
     }
 }
 
@@ -122,19 +151,26 @@ void mothership_read_data() {
  * 
  */
 void mothership_setup() {
-    // Initializes systems
+    // Initializes communication systems
     SYSTEM_Initialize();
 
     // Enable Global and Peripheral Interrupts
     INTERRUPT_GlobalInterruptEnable();
     INTERRUPT_PeripheralInterruptEnable();
+
+    RS232_WriteString("Welcome to the Space Explorer Earth Station \n\r");
+    RS232_WriteString("To launch the probe from the mothership, press 's'\n\r");
     
-//    // I2C2 communications status 
-//    I2C2_MESSAGE_STATUS status = I2C2_MESSAGE_PENDING;
-//    
+    // Waits for Earth command
+    while(earth_command != EARTH_PROBE_LAUNCH) {
+        earth_command = RS232_ReadByte();
+    }
+    
+    RS232_WriteString("Launching Probe");
+    
     // Send launch command
-    __delay_ms(5000);
-    mothership_command = COMMAND_PROBE_LAUNCH;
+    mothership_command = COMMAND_PROBE_LAUNCH; 
+    //__delay_ms(5000);
     I2C_WriteCommand(mothership_command);
     
     // Read probe launched signal
@@ -142,96 +178,14 @@ void mothership_setup() {
     mothership_command = COMMAND_STATUS_GET;
     I2C_ReadData(&probe_status, mothership_command, BYTE);
     while (probe_status != STATUS_GET_PROBE_LAUNCHED) {
+        RS232_WriteString("...");
         __delay_ms(10);
         mothership_command = COMMAND_STATUS_GET;
-      //  I2C_WriteCommand(mothership_command);
-        
         __delay_ms(10);
         I2C_ReadData(&probe_status, mothership_command, BYTE);
     }
     
-//    // wait for the message to be sent or status has changed.
-//    while (status == I2C2_MESSAGE_PENDING);
-//    
-//    // Enable interrupts 
-//    //    mssp2_enableIRQ();
-//
-//    // Test code
-//    while (1) {
-//
-//        I2C2_MESSAGE_STATUS status = I2C2_MESSAGE_PENDING;
-//        uint8_t buffer[3] = {0x11, 0x22, 0x33};
-//        uint8_t bufferRead[3];
-//
-//        // write one byte to EEPROM (3 is the number of bytes to write)
-//        I2C2_MasterWrite(buffer,
-//                3,
-//                0x50,
-//                &status);
-//
-//        PIR3bits.SSP2IF = true;
-//
-//        // wait for the message to be sent or status has changed.
-//        while (status == I2C2_MESSAGE_PENDING);
-//
-//        __delay_ms(4);
-//
-//        // write one byte to EEPROM (3 is the number of bytes to write)
-//        I2C2_MasterRead(buffer,
-//                3,
-//                0x50,
-//                &status);
-//
-//        PIR3bits.SSP2IF = true;
-//
-//        // wait for the message to be sent or status has changed.
-//        while (status == I2C2_MESSAGE_PENDING);
-//
-//        __delay_ms(4);
-//    }
-
-    //    uint8_t launch = 0xAA;
-    //    
-    //    while(1) {
-    //        uint8_t buffer[3];
-    //        launch = 0x11;
-    //        i2c_writeNBytes(ADDRESS, &launch, 1);
-    //        launch = 0x22;
-    //        
-    //        i2c_writeNBytes(ADDRESS, &launch, 1);
-    //        launch = 0x33;
-    //        i2c_writeNBytes(ADDRESS, &launch, 1);
-    //        i2c_readNBytes(0x50, buffer, 3);
-    ////        uint8_t launch = 0xAA;
-    ////        i2c_writeNBytes(ADDRESS, &launch, 1);
-    ////        __delay_ms(4);
-    ////        probe_status = i2c_read1ByteRegister(ADDRESS, COMMAND_STATUS_GET);
-    //        __delay_ms(4);
-    //    }
-    // Start timer to poll launch signal
-//    TMR0_StartTimer();
-//
-//    uint8_t launch = COMMAND_PROBE_LAUNCH;
-//
-//    // Launch probe
-//    //    i2c_writeNBytes(ADDRESS, &launch, 1);
-//
-//    // Get probe status
-//    //    probe_status = i2c_read1ByteRegister(ADDRESS, COMMAND_STATUS_GET);
-//
-//    while (probe_status != STATUS_GET_PROBE_LAUNCHED) {
-//        if (TMR0IF) {
-//            launch = COMMAND_PROBE_LAUNCH;
-//            //            i2c_writeNBytes(ADDRESS, &launch, 1);
-//
-//            //            probe_status = i2c_read1ByteRegister(ADDRESS, COMMAND_STATUS_GET);
-//
-//            TMR0IF = 0;
-//            TMR0_Reload();
-//        }
-//    }
-//
-//    TMR0_StopTimer();
+    RS232_WriteString("\n\rProbe successfully launched\n\r");
 }
 
 void mothership_loop() {
@@ -242,7 +196,6 @@ void mothership_loop() {
             }
             __delay_ms(5);
             mothership_command = COMMAND_STATUS_GET;
-           // I2C_WriteCommand(mothership_command);
         
             I2C_ReadData(&probe_status, mothership_command, BYTE);
             break;
@@ -250,7 +203,6 @@ void mothership_loop() {
             section = 0;
             while(section < SECTIONS) { 
                 mothership_command = COMMAND_STATUS_GET;
-                //I2C_WriteCommand(mothership_command);
                 
                 I2C_ReadData(&probe_status, mothership_command, BYTE);
                 if (probe_status == STATUS_GET_READY_TO_TRANSFER) {
@@ -262,35 +214,6 @@ void mothership_loop() {
             }
             break;
     }
-//    // Start timer to poll probe status
-//    TMR0_StartTimer();
-//
-//    // Switches between the different mothership operations
-//    switch (mothership_state) {
-//        case MOTHERSHIP_CHECK_PROBE:
-//            if (TMR0IF) {
-//                //                probe_status = i2c_read1ByteRegister(ADDRESS, COMMAND_STATUS_GET);
-//
-//                if (probe_status == STATUS_GET_READY_TO_TRANSFER) {
-//                    mothership_state = MOTHERSHIP_RECIEVE_DATA;
-//                }
-//
-//                TMR0IF = 0;
-//                TMR0_Reload();
-//            }
-//            break;
-//        case MOTHERSHIP_COLLECT_DATA:
-//
-//            // Read data
-//            mothership_read_data();
-//
-//            mothership_state = MOTHERSHIP_RECIEVE_DATA;
-//
-//            break;
-//        default:
-//            mothership_state = MOTHERSHIP_CHECK_PROBE;
-//            break;
-//    }
 }
 
 

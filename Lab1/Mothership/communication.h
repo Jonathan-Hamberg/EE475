@@ -1,6 +1,11 @@
 #ifndef COMMUNICATION_H
 #define	COMMUNICATION_H
 
+#define EARTH_PROBE_LAUNCH 's'
+
+#define SYNC_0                  0x88
+#define SYNC_1                  0x02
+
 #define COMMAND_STATUS_GET      0x00
 #define COMMAND_PROBE_LAUNCH    0x01
 #define COMMAND_PROBE_DATA      0x02
