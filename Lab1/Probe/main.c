@@ -17,7 +17,8 @@
 #define BUFFER_80 819
 
 /**
- * 
+ * This enumeration contains the different states that the probe can
+ * be physically in.
  */
 typedef enum {
     PROBE_STOWED = 0,
@@ -40,10 +41,6 @@ uint8_t probe_data_buffer[16];
 // Variables to store the state of the two active cameras.
 uint16_t camera_one_address = 0;
 uint16_t camera_two_address = 1024;
-
-uint8_t sw1_current = 0, sw1_previous = 0;
-uint8_t sw2_current = 0, sw2_previous = 0;
-uint8_t sw3_current = 0, sw3_previous = 0;
 
 uint8_t camera_active_index = 0;
 uint16_t camera_active_address = 0;
@@ -77,6 +74,24 @@ void I2C2_StatusCallback(I2C2_SLAVE_DRIVER_STATUS i2c_bus_state) {
                     launchedCountdownTimer = 500;
                     gStatus = STATUS_GET_PROBE_LAUNCHED;
                     break;
+                case COMMAND_CAMERA1_WORK:
+                    privateSetCameraState(0, CAMERA_SHUTDOWN);
+                    break;
+                case COMMAND_CAMERA2_WORK:
+                    privateSetCameraState(1, CAMERA_SHUTDOWN);
+                    break;
+                case COMMAND_CAMERA3_WORK:
+                    privateSetCameraState(2, CAMERA_SHUTDOWN);
+                    break;
+                case COMMAND_CAMERA1_MALFUNCTION:
+                    privateSetCameraState(0, CAMERA_MALFUNCTION);
+                    break;
+                case COMMAND_CAMERA2_MALFUNCTION:
+                    privateSetCameraState(1, CAMERA_MALFUNCTION);
+                    break;
+                case COMMAND_CAMERA3_MALFUNCTION:
+                    privateSetCameraState(2, CAMERA_MALFUNCTION);
+                    break;
 
                 default:;
             }
@@ -86,44 +101,41 @@ void I2C2_StatusCallback(I2C2_SLAVE_DRIVER_STATUS i2c_bus_state) {
                 case COMMAND_STATUS_GET:
                     SSP2BUF = gStatus;
                     break;
-                case COMMAND_PROBE_LAUNCH:
-                    current_state = PROBE_LAUNCHED;
-                    launchedCountdownTimer = 1000;
-                    gStatus = STATUS_GET_PROBE_LAUNCHED;
-                    break;
                 case COMMAND_PROBE_DATA:
                     // Return with the data to be sent to the mother-ship.
-                    if(probe_data_address < 16 && probe_data_section < 64) {
+                    if (probe_data_address < 16 && probe_data_section < 64) {
                         SSP2BUF = probe_data_buffer[probe_data_address++];
                     } else {
                         SSP2BUF = 0xDB;
                     }
-                    
-                    if(probe_data_address)
 
-                    // Handle finished section transmitting.
-                    if (probe_data_address >= 16) {
-                        // Indicate to the main thread that the next section
-                        // Needs to be read from memory.
-                        gReadSection = 1;
+                    if (probe_data_address)
+                        // Handle finished section transmitting.
+                        if (probe_data_address >= 16) {
+                            // Indicate to the main thread that the next section
+                            // Needs to be read from memory.
+                            gReadSection = 1;
 
-                        // Set the status that is reported to the mother-ship.
-                        if (probe_data_section >= 64) {
-                            // Done transmitting all the sections.
-                            gStatus = STATUS_GET_NONE;
-                        } else {
-                            // Set ready to transfer but need load the section
-                            // from memory.
-                            gStatus = STATUS_GET_READY_TO_TRANSFER;
-                            
-                            // Increment the section that is being transmitted.
+                            // Set the status that is reported to the mother-ship.
+                            if (probe_data_section >= 64) {
+                                // Done transmitting all the sections.
+                                gStatus = STATUS_GET_NONE;
+                            } else {
+                                // Set ready to transfer but need load the section
+                                // from memory.
+                                gStatus = STATUS_GET_READY_TO_TRANSFER;
+
+                                // Increment the section that is being transmitted.
+                            }
                         }
-                    }
                     break;
                 case COMMAND_DATA_SECTION:
                     // Return with the current section that is being
                     // transmitted.
                     SSP2BUF = probe_data_section;
+                    break;
+                case COMMAND_CAMERA_STATUS:
+                    SSP2BUF = getCameraStateByte();
                     break;
                 default:
                     // Un-handled case just always return 0.
@@ -137,7 +149,6 @@ void I2C2_StatusCallback(I2C2_SLAVE_DRIVER_STATUS i2c_bus_state) {
 
 }
 
-
 void main(void) {
     // Initialize the system.
     SYSTEM_Initialize();
@@ -148,75 +159,27 @@ void main(void) {
 
     // Start the timer to poll the button.
     TMR0_StartTimer();
-    
-    if(SW1_GetValue()) {
-        privateSetCameraState(0, CAMERA_SHUTDOWN);
-    } else {
-        privateSetCameraState(0, CAMERA_MALFUNCTION);
-    }
-    
-    if(SW2_GetValue()) {
-        privateSetCameraState(1, CAMERA_SHUTDOWN);
-    } else {
-        privateSetCameraState(1, CAMERA_MALFUNCTION);
-    }
-    
-    if(SW3_GetValue()) {
-        privateSetCameraState(2, CAMERA_SHUTDOWN);
-    } else {
-        privateSetCameraState(2, CAMERA_MALFUNCTION);
-    }
 
     while (1) {
 
         // Determine if the timer has overflowed.
         if (TMR0IF) {
-            // Perform input edge detection on the switches.
-            sw1_previous = sw1_current;
-            sw2_previous = sw2_current;
-            sw3_previous = sw3_current;
-            sw1_current = SW1_GetValue();
-            sw2_current = SW2_GetValue();
-            sw3_current = SW3_GetValue();
-
-            // Enable and disable camera 1.
-            if (sw1_current ^ sw1_previous) {
-                if (sw1_current) {
-                    privateSetCameraState(0, CAMERA_SHUTDOWN);
-                } else {
-                    privateSetCameraState(0, CAMERA_MALFUNCTION);
-                }
-            }
-
-            // Enable and disable camera 2.
-            if (sw2_current ^ sw2_previous) {
-                if (sw2_current) {
-                    privateSetCameraState(1, CAMERA_SHUTDOWN);
-                } else {
-                    privateSetCameraState(1, CAMERA_MALFUNCTION);
-                }
-            }
-
-            // Enable and disable camera 3.
-            if (sw3_current ^ sw3_previous) {
-                if (sw3_current) {
-                    privateSetCameraState(2, CAMERA_SHUTDOWN);
-                } else {
-                    privateSetCameraState(2, CAMERA_MALFUNCTION);
-                }
-            }
 
             // Handle the PROBE_LAUNCHED state.
             if (current_state == PROBE_LAUNCHED) {
+                // Check to see if the launched countdown has finished.
+                // If so start the filming process and update the status.
                 if (launchedCountdownTimer-- == 0) {
                     // Change the state to the landed position.
                     current_state = PROBE_LANDED;
                     gStatus = STATUS_GET_PROBE_LANDED;
                     camera_active_base = 0;
                     camera_active_address = 0;
-                    // TODO(jrh) check for case of all cameras malfunctioning.
-                    camera_active_index = (uint8_t)findOtherCamera(-1);
-                    // TODO(jrh) check for case that the camera cannot start filming.
+                    // Find a working camera to start filming with.
+                    camera_active_index = (uint8_t) findOtherCamera(-1);
+                    // Start filming with the working camera.
+                    // No working cameras are found the startFilming function
+                    // will do nothering.
                     startFilming(camera_active_index);
                 }
             }
@@ -224,27 +187,31 @@ void main(void) {
 
             // Handle the PROBE_LANDED state.
             if (current_state == PROBE_LANDED) {
-
+                // Check to see if the active camera has data.  If the camera
+                // does not have data.  Find another camera that is working.
                 if (cameraHasData(camera_active_index)) {
                     // Write the current camera data to the SRAM.
-                    // TODO(jrh) add after testing sram.
                     sramWrite(camera_active_base + camera_active_address++,
                             getCameraData(camera_active_index));
                 } else {
                     // Check to see if there is any other camera available.
-                    int8_t available = findOtherCamera(-1);
-                    
-                    if(available >= 0 < 3) {
+                    uint8_t available = (uint8_t)(findOtherCamera(-1));
+
+                    // Make sure the camera is valid.  If no camera is available
+                    // the function will return -1.
+                    if (available >= 0 && available < 3) {
+                        // Update the active camera index.
                         camera_active_index = available;
+                        // Start filming with the new active camera.
                         startFilming(camera_active_index);
-                        
+                        // Write the camera data to the SRAM.
                         sramWrite(camera_active_base + camera_active_address++,
                                 getCameraData(camera_active_index));
                     }
-                    
+
                     // If no cameras are not available.  Do not collect any data.
                     // Just wait until a camera is available.
-                          
+
                 }
 
                 if (camera_active_address >= BUFFER_100) {
@@ -257,27 +224,24 @@ void main(void) {
                     camera_store_index = camera_active_index;
 
                     // Find new parameters for the active camera.
-                    camera_active_index = (uint8_t)findOtherCamera(camera_active_index);
+                    camera_active_index = (uint8_t) findOtherCamera(camera_active_index);
                     camera_active_base = 1024 - camera_active_base;
                     camera_active_address = 0;
 
                     // Load the data from the camera buffer.
                     gReadSection = 1;
                 } else if (camera_active_address == BUFFER_90) {
-                    // TODO(jrh) check to see there is another camera available.
-                    camera_store_index = (uint8_t)findOtherCamera(camera_active_index);
-                    // TODO(jrh) if the only camera left is the active camera figure out what to do.
-                    if (!startFilming(camera_store_index)) {
-                        // TODO(jrh) handle the error case.
-                    }
+                    // Find another camera to start filming.  Essentially make
+                    // sure the camera is working when it is expected to start
+                    // filming.
+                    camera_store_index = (uint8_t) findOtherCamera(camera_active_index);
+                    // Tell the camera to start filming.
+                    startFilming(camera_store_index);
                 } else if (camera_active_address == BUFFER_80) {
                     // Send the request to transfer command to the mother-ship.
                     gStatus = STATUS_GET_REQUEST_TO_TRANSFER;
                 }
             }
-
-            // Update the camera LED status lights.
-            updateCameraLED();
 
             // clear the TMR0 interrupt flag
             TMR0IF = 0;

@@ -5,9 +5,9 @@
 
 typedef enum {
     CAMERA_SHUTDOWN = 0,
-    CAMERA_STANDBY,
-    CAMERA_FILMING,
-    CAMERA_MALFUNCTION,
+    CAMERA_STANDBY = 1,
+    CAMERA_FILMING = 2,
+    CAMERA_MALFUNCTION = 3,
 } CameraState;
 
 
@@ -24,6 +24,13 @@ void privateSetCameraState(uint8_t cameraNumber, CameraState state);
  * @param state
  */
 void setCameraState(uint8_t cameraNumber, CameraState state);
+
+/**
+ * 
+ * @param cameraNumber
+ * @return 
+ */
+CameraState getCameraState(uint8_t cameraNumber);
 
 /**
  * 
@@ -60,9 +67,8 @@ uint8_t cameraHasData(uint8_t cameraNumber);
 int8_t findOtherCamera(uint8_t currentCamera);
 
 /**
- * 
  */
-void updateCameraLED();
+uint8_t getCameraStateByte();
 
 #endif	/* CAMERA_H */
 

@@ -34,7 +34,7 @@ void sramWrite(uint16_t address, uint8_t data) {
     shiftAddress(address & 0xFF);
 
     // Set the upper 3 bits of the address.
-    LATC = (LATC & ~0x70) | ((address >> 4) & 0x70);
+    LATC = (LATC & ~0x70u) | ((address >> 4u) & 0x70u);
     
 
     // Enable the SRAM module.
@@ -66,7 +66,7 @@ uint8_t sramRead(uint16_t address) {
 
     //    // Set the upper 3 bits of the address.
     //    // RC4, RC5, RC6.
-    LATC = (LATC & ~0x70) | ((address >> 4) & 0x70);
+    LATC = (LATC & ~0x70u) | ((address >> 4u) & 0x70u);
 
     // Enable the SRAM module.
     SRAM_CE_SetLow();
