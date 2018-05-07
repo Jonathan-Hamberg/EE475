@@ -24,7 +24,6 @@ void setCameraState(uint8_t cameraNumber, CameraState state) {
 void privateSetCameraState(uint8_t cameraNumber, CameraState state) {
     // Make sure state is valid.
     if (state != CAMERA_SHUTDOWN &&
-            state != CAMERA_STANDBY &&
             state != CAMERA_FILMING &&
             state != CAMERA_MALFUNCTION) {
         return;
@@ -49,12 +48,12 @@ CameraState getCameraState(uint8_t cameraNumber) {
 }
 
 uint8_t isOperational(uint8_t cameraNumber) {
-    return getCameraState(cameraNumber) != CAMERA_MALFUNCTION;
+    return (uint8_t)(getCameraState(cameraNumber) != CAMERA_MALFUNCTION);
 }
 
 uint8_t cameraHasData(uint8_t cameraNumber) {
     
-    return getCameraState(cameraNumber) == CAMERA_FILMING;
+    return (uint8_t)(getCameraState(cameraNumber) == CAMERA_FILMING);
 }
 
 uint8_t getCameraData(uint8_t cameraNumber) {
@@ -64,7 +63,7 @@ uint8_t getCameraData(uint8_t cameraNumber) {
     }
 
     // Camera data is just the number of the camera.
-    return cameraNumber;
+    return '0' + cameraNumber;
 }
 
 uint8_t startFilming(uint8_t cameraNumber) {

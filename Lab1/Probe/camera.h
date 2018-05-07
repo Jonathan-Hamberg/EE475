@@ -5,9 +5,8 @@
 
 typedef enum {
     CAMERA_SHUTDOWN = 0,
-    CAMERA_STANDBY = 1,
-    CAMERA_FILMING = 2,
-    CAMERA_MALFUNCTION = 3,
+    CAMERA_FILMING = 1,
+    CAMERA_MALFUNCTION = 2,
 } CameraState;
 
 
