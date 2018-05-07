@@ -34,13 +34,10 @@ typedef enum {
 ProbeState current_state = PROBE_STOWED;
 
 // Variables to store the current position of the camera buffer.
-uint8_t probe_data_section = 0;
-uint8_t probe_data_address = 0;
-uint8_t probe_data_buffer[16];
-
-// Variables to store the state of the two active cameras.
-uint16_t camera_one_address = 0;
-uint16_t camera_two_address = 1024;
+volatile uint8_t probe_data_section = 0;
+volatile uint8_t probe_data_address = 0;
+volatile uint8_t probe_data_base = 0;
+volatile uint8_t probe_data_buffer[18];
 
 uint8_t camera_active_index = 0;
 uint16_t camera_active_address = 0;
@@ -62,8 +59,8 @@ volatile uint8_t gCommand;
 volatile uint8_t gStatus = STATUS_GET_NONE;
 volatile uint8_t gReadSection = 0;
 
+uint16_t charCount = 0;
 void I2C2_StatusCallback(I2C2_SLAVE_DRIVER_STATUS i2c_bus_state) {
-
     switch (i2c_bus_state) {
         case I2C2_SLAVE_WRITE_COMPLETED:
 
@@ -96,38 +93,45 @@ void I2C2_StatusCallback(I2C2_SLAVE_DRIVER_STATUS i2c_bus_state) {
                 default:;
             }
 
+
         case I2C2_SLAVE_READ_REQUEST:
+
+
             switch (gCommand) {
                 case COMMAND_STATUS_GET:
                     SSP2BUF = gStatus;
                     break;
                 case COMMAND_PROBE_DATA:
                     // Return with the data to be sent to the mother-ship.
-                    if (probe_data_address < 16 && probe_data_section < 64) {
-                        SSP2BUF = probe_data_buffer[probe_data_address++];
+                    if (probe_data_address < 19 &&
+                            probe_data_section < 64 &&
+                            gStatus == STATUS_GET_READY_TO_TRANSFER) {
+                        SSP2BUF = probe_data_buffer[probe_data_address];
+                        charCount++;
+                        probe_data_address += 1;
+
                     } else {
                         SSP2BUF = 0xDB;
                     }
 
-                    if (probe_data_address)
-                        // Handle finished section transmitting.
-                        if (probe_data_address >= 16) {
-                            // Indicate to the main thread that the next section
-                            // Needs to be read from memory.
+                    // Handle finished section transmitting.
+                    if (probe_data_address >= 19) {
+                        // Indicate to the main thread that the next section
+                        // Needs to be read from memory.
+                        if (probe_data_section < 64) {
                             gReadSection = 1;
-
-                            // Set the status that is reported to the mother-ship.
-                            if (probe_data_section >= 64) {
-                                // Done transmitting all the sections.
-                                gStatus = STATUS_GET_NONE;
-                            } else {
-                                // Set ready to transfer but need load the section
-                                // from memory.
-                                gStatus = STATUS_GET_READY_TO_TRANSFER;
-
-                                // Increment the section that is being transmitted.
-                            }
                         }
+
+                        // Increment the probe_data_section and reset the address.
+                        probe_data_address = 0;
+
+                        // Increment the section that is being transmitted.
+                        probe_data_section++;
+
+                        // Not ready to transfer.
+                        gStatus = STATUS_GET_NONE;
+                    }
+
                     break;
                 case COMMAND_DATA_SECTION:
                     // Return with the current section that is being
@@ -179,7 +183,7 @@ void main(void) {
                     camera_active_index = (uint8_t) findOtherCamera(-1);
                     // Start filming with the working camera.
                     // No working cameras are found the startFilming function
-                    // will do nothering.
+                    // will do nothing.
                     startFilming(camera_active_index);
                 }
             }
@@ -195,7 +199,7 @@ void main(void) {
                             getCameraData(camera_active_index));
                 } else {
                     // Check to see if there is any other camera available.
-                    uint8_t available = (uint8_t)(findOtherCamera(-1));
+                    uint8_t available = (uint8_t) (findOtherCamera(-1));
 
                     // Make sure the camera is valid.  If no camera is available
                     // the function will return -1.
@@ -230,11 +234,15 @@ void main(void) {
 
                     // Load the data from the camera buffer.
                     gReadSection = 1;
+                    probe_data_section = 0;
+                    probe_data_base = camera_store_base;
+
                 } else if (camera_active_address == BUFFER_90) {
                     // Find another camera to start filming.  Essentially make
                     // sure the camera is working when it is expected to start
                     // filming.
                     camera_store_index = (uint8_t) findOtherCamera(camera_active_index);
+
                     // Tell the camera to start filming.
                     startFilming(camera_store_index);
                 } else if (camera_active_address == BUFFER_80) {
@@ -252,17 +260,20 @@ void main(void) {
 
         // Read data from the SRAM.
         if (gReadSection) {
-            // Increment the probe_data_section and reset the address.
-            probe_data_address = 0;
-
+            
+            probe_data_buffer[0] = 0x00;
+            probe_data_buffer[1] = 0x02;
+            probe_data_buffer[2] = 0x88;
+            
             // Lead the buffer data into the 16 byte buffer.
-            for (uint8_t i = 0; i < 16; i++) {
-                // TODO(jrh) add after testing.
+            for (uint8_t i = 3; i < 19; i++) {
                 probe_data_buffer[i] =
-                        sramRead(camera_store_base + 16u * probe_data_section
-                        + i);
+                        sramRead(camera_store_base +
+                        16u * probe_data_section +
+                        i);
             }
 
+            // Ready to transfer.
             gStatus = STATUS_GET_READY_TO_TRANSFER;
 
             // Disable the read section flag.

@@ -9,10 +9,9 @@
 #include "mcc_generated_files/eusart1.h"
 
 #define ADDRESS 0x50
-#define SECTION_SIZE 16
+#define SECTION_SIZE 18
 #define SECTIONS 64
 #define BYTE 1
-#define EARTH_BUFFER_SIZE 3
 #define EARTH_PROBE_LAUNCH 's'
 
 typedef enum {
@@ -41,6 +40,10 @@ volatile char * earth_console;
 uint8_t currentCameraStatus = 0;
 uint8_t previousCameraStatus = 0;
 
+/**
+ * @param command The command that is being asked for from the slave.
+ * @return The singe byte returned from the slave.
+ */
 uint8_t I2C_ReadCommand(uint8_t command) {
     I2C2_MESSAGE_STATUS status = I2C2_MESSAGE_PENDING;
 
@@ -53,7 +56,7 @@ uint8_t I2C_ReadCommand(uint8_t command) {
             0x50,
             &status);
 
-    PIR3bits.SSP2IF = true;
+    PIR3bits.SSP2IF = 1;
 
     // wait for the message to be sent or status has changed.
     while (status == I2C2_MESSAGE_PENDING);
@@ -65,7 +68,7 @@ uint8_t I2C_ReadCommand(uint8_t command) {
             0x50,
             &status);
 
-    PIR3bits.SSP2IF = true;
+    PIR3bits.SSP2IF = 1;
 
     // wait for the message to be sent or status has changed.
     while (status == I2C2_MESSAGE_PENDING);
@@ -75,6 +78,9 @@ uint8_t I2C_ReadCommand(uint8_t command) {
 
 }
 
+/**
+ * @param Command to write to the slave I2C device.
+ */
 void I2C_WriteCommand(uint8_t command) {
     I2C2_MESSAGE_STATUS status = I2C2_MESSAGE_PENDING;
 
@@ -93,6 +99,13 @@ void I2C_WriteCommand(uint8_t command) {
     while (status == I2C2_MESSAGE_PENDING);
 }
 
+/**
+ * Read N bytes from the I2C slave device.
+ * @param buffer The buffer to store the data in.
+ * @param command The command to read from the device.
+ * @param size The number of bytes being requested.
+ * 
+ */
 void I2C_ReadData(uint8_t* buffer, uint8_t command, uint8_t size) {
     I2C2_MESSAGE_STATUS status = I2C2_MESSAGE_PENDING;
 
@@ -132,21 +145,34 @@ uint8_t getOddParity(uint8_t byte) {
     return (uint8_t) (byte & 1);
 }
 
+/*
+ * @return A byte from the RS232 console masking out the parity bit.
+ */
 uint8_t RS232_ReadByte() {
     return (uint8_t) (EUSART1_Read() & 0x7F);
 }
 
+/**
+ * @param byte The byte to be sent to the RS232 console.
+ */
 void RS232_WriteByte(uint8_t byte) {
     uint8_t parity = getOddParity(byte);
     EUSART1_Write((uint8_t) ((uint8_t) (parity << 7) | byte));
 }
 
+/**
+ * @param buffer The buffer to be sent to the RS232 console.
+ * @param length The length of the data to be sent to the RS232 console.
+ */
 void RS232_WriteNBytes(uint8_t* buffer, uint8_t length) {
     for (uint8_t i = 0; i < length; i++) {
         RS232_WriteByte(buffer[i]);
     }
 }
 
+/**
+ * @param string String to be printed to the RS232 console.
+ */
 void RS232_WriteString(const char * string) {
     while (*string != NULL) {
         RS232_WriteByte(*string);
@@ -204,32 +230,32 @@ void main(void) {
         // Determine if any probe commands need to be send to the probe.
         if (rs232Buffer[1] == 'e') {
             // An enable command needs to be send.
-            if (rs232Buffer[0] == '1') {
+            if (rs232Buffer[0] == '0') {
                 I2C_WriteCommand(COMMAND_CAMERA1_WORK);
+                RS232_WriteString("Camera 0 Enable\n");
+            } else if (rs232Buffer[0] == '1') {
+                I2C_WriteCommand(COMMAND_CAMERA2_WORK);
                 RS232_WriteString("Camera 1 Enable\n");
             } else if (rs232Buffer[0] == '2') {
-                I2C_WriteCommand(COMMAND_CAMERA2_WORK);
-                RS232_WriteString("Camera 2 Enable\n");
-            } else if (rs232Buffer[0] == '3') {
                 I2C_WriteCommand(COMMAND_CAMERA3_WORK);
-                RS232_WriteString("Camera 3 Enable\n");
+                RS232_WriteString("Camera 2 Enable\n");
             }
         } else if (rs232Buffer[1] == 'd') {
-            if (rs232Buffer[0] == '1') {
+            if (rs232Buffer[0] == '0') {
                 I2C_WriteCommand(COMMAND_CAMERA1_MALFUNCTION);
+                RS232_WriteString("Camera 0 Malfunction\n");
+            } else if (rs232Buffer[0] == '1') {
+                I2C_WriteCommand(COMMAND_CAMERA2_MALFUNCTION);
                 RS232_WriteString("Camera 1 Malfunction\n");
             } else if (rs232Buffer[0] == '2') {
-                I2C_WriteCommand(COMMAND_CAMERA2_MALFUNCTION);
-                RS232_WriteString("Camera 2 Malfunction\n");
-            } else if (rs232Buffer[0] == '3') {
                 I2C_WriteCommand(COMMAND_CAMERA3_MALFUNCTION);
-                RS232_WriteString("Camera 3 Malfunction\n");
+                RS232_WriteString("Camera 2 Malfunction\n");
             }
         }
 
         // Reset the buffer if a command is found.
         if ((rs232Buffer[1] == 'e' || rs232Buffer[1] == 'd') &&
-                (rs232Buffer[0] >= '1' && rs232Buffer[0] <= '3')) {
+                (rs232Buffer[0] >= '0' && rs232Buffer[0] <= '2')) {
             rs232Buffer[0] = 0;
             rs232Buffer[1] = 0;
         }
@@ -269,6 +295,9 @@ void main(void) {
                 if (probe_status == STATUS_GET_REQUEST_TO_TRANSFER) {
                     mothership_state = MOTHERSHIP_REQUEST_TRANSFER;
                     RS232_WriteString("Request To Transfer (y/n):\n");
+                    // Clear the input buffer.
+                    rs232Buffer[0] = 0;
+                    rs232Buffer[1] = 0;
                 }
 
                 __delay_ms(5);
@@ -308,11 +337,15 @@ void main(void) {
 
                     // If ready to transfer read 16 bytes from the probe.
                     if (probe_status == STATUS_GET_READY_TO_TRANSFER) {
-                        I2C_ReadData((uint8_t*) probe_data_section, COMMAND_PROBE_DATA, 16 * BYTE);
-                        RS232_WriteNBytes((uint8_t*) probe_data_section, 16);
+                        I2C_ReadData((uint8_t*) probe_data_section, COMMAND_PROBE_DATA, 18);
+                        RS232_WriteNBytes((uint8_t*) probe_data_section, 18);
+                        if (probe_data_section[0] == 0x02 && probe_data_section[1] == 0x88) {
+                            RS232_WriteString(" V");
+                        }
+                        RS232_WriteByte('\n');
                         section++;
                     }
-                    __delay_us(500);
+
                 } else {
 
                     mothership_state = MOTHERSHIP_CHECK_PROBE;
