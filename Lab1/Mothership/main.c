@@ -16,6 +16,7 @@
 
 typedef enum {
     MOTHERSHIP_CHECK_PROBE = 0,
+    MOTHERSHIP_PERMISSION_DENIED,
     MOTHERSHIP_REQUEST_TRANSFER,
     MOTHERSHIP_COLLECT_DATA,
 } MothershipState;
@@ -39,44 +40,6 @@ volatile char * earth_console;
 // Camera probe camera status.
 uint8_t currentCameraStatus = 0;
 uint8_t previousCameraStatus = 0;
-
-/**
- * @param command The command that is being asked for from the slave.
- * @return The singe byte returned from the slave.
- */
-uint8_t I2C_ReadCommand(uint8_t command) {
-    I2C2_MESSAGE_STATUS status = I2C2_MESSAGE_PENDING;
-
-    uint8_t buffer[1];
-    buffer[0] = command;
-
-    // write one byte to EEPROM (3 is the number of bytes to write)
-    I2C2_MasterWrite(buffer,
-            1,
-            0x50,
-            &status);
-
-    PIR3bits.SSP2IF = 1;
-
-    // wait for the message to be sent or status has changed.
-    while (status == I2C2_MESSAGE_PENDING);
-
-
-    // write one byte to EEPROM (3 is the number of bytes to write)
-    I2C2_MasterRead(buffer,
-            1,
-            0x50,
-            &status);
-
-    PIR3bits.SSP2IF = 1;
-
-    // wait for the message to be sent or status has changed.
-    while (status == I2C2_MESSAGE_PENDING);
-
-    // Return the message from the slave.
-    return buffer[0];
-
-}
 
 /**
  * @param Command to write to the slave I2C device.
@@ -175,6 +138,7 @@ void RS232_WriteNBytes(uint8_t* buffer, uint8_t length) {
  */
 void RS232_WriteString(const char * string) {
     while (*string != NULL) {
+        // Make sure not sending backspace and start of text.
         RS232_WriteByte(*string);
         string++;
     }
@@ -184,9 +148,6 @@ void RS232_WriteString(const char * string) {
  * 
  */
 void main(void) {
-
-    SYSTEM_Initialize();
-
     // Initializes communication systems
     SYSTEM_Initialize();
 
@@ -194,15 +155,18 @@ void main(void) {
     INTERRUPT_GlobalInterruptEnable();
     INTERRUPT_PeripheralInterruptEnable();
 
+    // Delay before running the rest of the program.
+    __delay_ms(100);
+
     RS232_WriteString("Welcome to the Space Explorer Earth Station \n");
     RS232_WriteString("To launch the probe from the mothership, press 's'\n");
 
     // Waits for Earth command
-    while (earth_command != EARTH_PROBE_LAUNCH) {
+    do {
         earth_command = RS232_ReadByte();
-    }
+    } while (earth_command != EARTH_PROBE_LAUNCH);
 
-    RS232_WriteString("Launching Probe\n");
+    RS232_WriteString("Launching Probe");
 
     // Send the launch command to the probe.
     I2C_WriteCommand(COMMAND_PROBE_LAUNCH);
@@ -211,7 +175,7 @@ void main(void) {
     do {
         // Display status updates to the console.
         RS232_WriteString(".");
-        __delay_ms(100);
+        __delay_ms(150);
         // Query the probe.
         I2C_ReadData((uint8_t*) & probe_status, COMMAND_STATUS_GET, BYTE);
     } while (probe_status == STATUS_GET_PROBE_LAUNCHED);
@@ -289,6 +253,7 @@ void main(void) {
             // Print newline to the console.
             RS232_WriteByte('\n');
         }
+
         // Determine what logic to communicate with the probe.
         switch (mothership_state) {
             case MOTHERSHIP_CHECK_PROBE:
@@ -304,6 +269,16 @@ void main(void) {
 
                 I2C_ReadData((uint8_t*) & probe_status, COMMAND_STATUS_GET, BYTE);
                 break;
+
+            case MOTHERSHIP_PERMISSION_DENIED:
+
+                I2C_ReadData((uint8_t*) & probe_status, COMMAND_STATUS_GET, BYTE);
+                if (probe_status != STATUS_GET_REQUEST_TO_TRANSFER) {
+                    mothership_state = MOTHERSHIP_CHECK_PROBE;
+                }
+
+                __delay_ms(5);
+                break;
             case MOTHERSHIP_REQUEST_TRANSFER:
                 // Move to data collection state if yes received from earth.
                 if (rs232Buffer[0] == 'y') {
@@ -313,10 +288,11 @@ void main(void) {
                     rs232Buffer[0] = 0;
                     section = 0;
                 } else if (rs232Buffer[0] == 'n') {
-                    mothership_state = MOTHERSHIP_CHECK_PROBE;
+                    mothership_state = MOTHERSHIP_PERMISSION_DENIED;
                     RS232_WriteString("Earth Permission Denied.\n");
                     // Acknowledge the 'no' answer.
                     rs232Buffer[0] = 0;
+                    rs232Buffer[1] = 0;
                 }
 
                 __delay_ms(5);
@@ -328,6 +304,8 @@ void main(void) {
                     RS232_WriteString("Earth Permission Not Found.\n");
                 }
                 break;
+
+
                 // Move to check probe state get state is not ready to transfer.
             case MOTHERSHIP_COLLECT_DATA:
 
@@ -337,12 +315,23 @@ void main(void) {
 
                     // If ready to transfer read 16 bytes from the probe.
                     if (probe_status == STATUS_GET_READY_TO_TRANSFER) {
+                        // Read the data from the probe.
                         I2C_ReadData((uint8_t*) probe_data_section, COMMAND_PROBE_DATA, 18);
-                        RS232_WriteNBytes((uint8_t*) probe_data_section, 18);
+
+                        // Send the data to earth.
+                        RS232_WriteNBytes((uint8_t*) (probe_data_section + 2), 16);
+
+                        // Print valid marker.
                         if (probe_data_section[0] == 0x02 && probe_data_section[1] == 0x88) {
-                            RS232_WriteString(" V");
+                            RS232_WriteString(" V ");
+                        } else {
+                            RS232_WriteString("   ");
                         }
-                        RS232_WriteByte('\n');
+
+                        if (((section + 1) & 0x03) == 0 && section != 0) {
+                            RS232_WriteByte('\n');
+                        }
+
                         section++;
                     }
 
