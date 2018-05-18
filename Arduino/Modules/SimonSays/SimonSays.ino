@@ -12,6 +12,7 @@
 #include <LFSR.h>
 #include <Timer.h>
 #include <GameState.h>
+#include <SPIManager.h>
 #include "SimonSays.h"
 
 ShiftOut out;
@@ -20,10 +21,11 @@ RGB_LED led(&out, 5, 0, 6, 0, 7, 0);
 ButtonManager buttons(0, 4, &in);
 Timer t(8);
 GameState game;
-SimonSays module(&in, &out, &led, &buttons, &t, &game);
+SPIManager spiManager(&game);
+SimonSays module(&in, &out, &led, &buttons, &t, &game, &spiManager);
 
 void setup() {
-  unsigned int pin = DATA_OUT_PIN; 
+  unsigned int pin = DATA_OUT_PIN;
   out.build(1, 1, &pin, OUT_LOAD_PIN, REG_CLOCK);
   game.init(300, 3, 3968);
   module.init(analogRead(1));

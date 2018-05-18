@@ -29,6 +29,7 @@
 #include <LFSR.h>
 #include <Timer.h>
 #include <GameState.h>
+#include <SPIManager.h>
 #include <Adafruit_LiquidCrystal.h>
 #include <LiquidCrystal_I2C.h>
 #include <Adafruit_NeoPixel.h>
@@ -40,10 +41,11 @@ RGB_LED led(&out, 16, 0, 8, 0, 0, 0);
 ButtonManager buttons(0, 4, &in);
 Timer t(8);
 GameState game;
+SPIManager spiManager(&game);
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(16, NEO_PIN, NEO_GRB + NEO_KHZ800);
 //LiquidCrystal lcd(RS, EN, D4, D5, D6, D7);
 LiquidCrystal_I2C lcd(0x3F,16,2);
-TheButton module(&led, buttons.getButton(0), &t, &game, &lcd, &strip);
+TheButton module(&led, buttons.getButton(0), &t, &game, &spiManager, &lcd, &strip);
 
 void setup() {
   Serial.begin(9600);

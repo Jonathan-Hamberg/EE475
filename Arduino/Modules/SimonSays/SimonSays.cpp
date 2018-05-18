@@ -8,17 +8,18 @@
 #define VOWEL_MAP {BLUE_INDEX, RED_INDEX, YELLOW_INDEX, GREEN_INDEX, YELLOW_INDEX, GREEN_INDEX, BLUE_INDEX, RED_INDEX, GREEN_INDEX, RED_INDEX, YELLOW_INDEX, BLUE_INDEX}
 #define NO_VOWEL_MAP {BLUE_INDEX, YELLOW_INDEX, GREEN_INDEX, RED_INDEX, RED_INDEX, BLUE_INDEX, YELLOW_INDEX, GREEN_INDEX, YELLOW_INDEX, GREEN_INDEX, BLUE_INDEX, RED_INDEX}
 
-SimonSays::SimonSays(ShiftIn * in, ShiftOut * out, RGB_LED * led, ButtonManager * buttons, Timer * t, GameState * game): buttonListener(this) , timerListener(this){
+SimonSays::SimonSays(ShiftIn * in, ShiftOut * out, RGB_LED * led, ButtonManager * buttons, Timer * t, GameState * game, SPIManager* manager): buttonListener(this) , timerListener(this){
   this->in = in;
   this->out = out;
   this->led = led;
   this->buttons = buttons;
   this->t = t;
   this->game = game;
+  this->spiManager = manager;
   currentTimer = nullptr;
   init(r.next());
   muteOutput();
-  setMode(MODULE_OFF);
+  setMode(ModuleMode::Off);
   buttons->attachAllOnPress(&buttonListener);
   buttons->attachAllOnRelease(&buttonListener);
 }
@@ -29,12 +30,12 @@ void SimonSays::init(uint32_t seed) {
     colors[i] = r.next() % 4;
   }
   muteOutput();
-  setMode(MODULE_OFF);
+  setMode(ModuleMode::Off);
 }
 
 void SimonSays::start() {
   muteOutput();
-  setMode(MODULE_ARMED);
+  setMode(ModuleMode::Armed);
   t->detachTimer(currentTimer);
   currentTimer = t->attachTimer(&timerListener, 0, 0);
   count = 0;
@@ -44,7 +45,7 @@ void SimonSays::start() {
 
 void SimonSays::demo() {
   muteOutput();
-  setMode(MODULE_DEMO);
+  setMode(ModuleMode::Demo);
   t->detachTimer(currentTimer);
   currentTimer = t->attachTimer(&timerListener, 0, 0);
   count = 3;
@@ -56,23 +57,23 @@ void SimonSays::demo() {
 
 void SimonSays::explode() {
   muteOutput();
-  setMode(MODULE_OFF);
+  setMode(ModuleMode::Off);
   t->detachTimer(currentTimer);
   currentTimer = nullptr;
 }
 
 SimonSays::~SimonSays() {}
 
-void SimonSays::setMode(uint8_t mode) {
+void SimonSays::setMode(ModuleMode mode) {
   this->mode = mode;
   switch (mode) {
-    case MODULE_ARMED:
+    case ModuleMode::Armed:
       led->set(0, LED_RED);
     break;
-    case MODULE_DISARMED:
+    case ModuleMode::Disarmed:
       led->set(0, LED_GREEN);
     break;
-    case MODULE_DEMO:
+    case ModuleMode::Demo:
       led->set(0, LED_BLUE);
     break;
     default: break;
@@ -96,16 +97,16 @@ void SimonSays::SimonSaysButtonListener::onEvent(Button * caller, ButtonEvent ev
   //Serial.println("Called");
   //setButtons();
   switch (parent->mode) {
-    case MODULE_OFF:
+    case ModuleMode::Off:
       offAction(caller, event);
     break;
-    case MODULE_DEMO:
+    case ModuleMode::Demo:
       demoAction(caller, event);
     break;
-    case MODULE_ARMED:
+    case ModuleMode::Armed:
       armedAction(caller, event);
     break;
-    case MODULE_DISARMED:
+    case ModuleMode::Disarmed:
       disarmedAction(caller, event);
     break;
     default:
@@ -166,8 +167,8 @@ void SimonSays::SimonSaysButtonListener::armedAction(Button * caller, ButtonEven
         parent->count2 = 0;
 
         if (parent->count == SIMON_SAYS_LENGTH) {
-          parent->setMode(MODULE_DISARMED);
-          // send dissarmed signal
+          parent->setMode(ModuleMode::Disarmed);
+          parent->spiManager->disarmModule();
         }
       } else {
         parent->count2++;
@@ -175,7 +176,7 @@ void SimonSays::SimonSaysButtonListener::armedAction(Button * caller, ButtonEven
     } else {
       parent->count = 0;
       parent->count2 = 0;
-      //send strike
+      parent->spiManager->strikeModule();
     }
 
   } else if (event == ButtonEvent::RELESE) {

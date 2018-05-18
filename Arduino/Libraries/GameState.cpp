@@ -24,7 +24,7 @@ inline uint16_t GameState::setBit(uint16_t value, uint8_t n, bool b) {
 }
 
 GameState::GameState() {
-    this->gameState = GameMode::Inactive;
+    this->gameState = ModuleMode::Off;
 }
 
 void GameState::init(uint16_t countdownTime, uint8_t maxStrikes, uint32_t seed) {
@@ -46,7 +46,8 @@ void GameState::init(uint16_t countdownTime, uint8_t maxStrikes, uint32_t seed) 
     }
     this->sn[5] = uint8_t(r.next() % 10 + '0');
     this->sn[6] = '\0';
-    this->gameState = GameMode::Inactive; 
+    this->gameState = ModuleMode::Off; 
+    this->modeChanged = false;
 }
 
 uint8_t GameState::getStrikes() const {
@@ -81,7 +82,7 @@ const char *GameState::getSN() const {
     return this->sn;
 }
 
-GameMode GameState::getGameState() const {
+ModuleMode GameState::getGameState() const {
     return this->gameState;
 }
 
@@ -97,8 +98,9 @@ void GameState::setCountdownTime(uint16_t countdownTime) {
     this->countdownTime = countdownTime;
 }
 
-void GameState::setGameState(GameMode gameState) {
+void GameState::setGameState(ModuleMode gameState) {
     this->gameState = gameState;
+    modeChanged = true;
 }
 
 void GameState::setIndicators(uint16_t indicators) {
@@ -181,6 +183,36 @@ void GameState::setRCA(bool value) {
     this->ports = uint8_t(setBit(this->ports, uint8_t(GamePort::Rca), value));
 }
 
+void GameState::setField(OpCode op, uint16_t data) {
+    switch(op) {
+        case OpCode::Mode:
+            this->gameState = ModuleMode(data);
+            break;
+        case OpCode::Strike:
+            this->strikes = data;
+            break;
+        case OpCode::MaxStrike:
+            this->maxStrikes = data;
+            break;
+        case OpCode::Countdown:
+            this->countdownTime = data;
+            break;
+        case OpCode::Indicators:
+            this->indicators = data;
+            break;
+        case OpCode::Ports:
+            this->ports = data;
+            break;
+        case OpCode::Seed:
+            this->seed = data;
+            break;
+        case OpCode::Battery:
+            this->bat = data;
+            break;
+        default:
+            break;
+    }
+}
 bool GameState::checkSND() {
     return getBit(this->indicators, uint8_t(GameIndicator::Snd));
 }
@@ -289,4 +321,12 @@ bool GameState::SNhasVowel() {
         }
     }
     return false;
+}
+
+bool GameState::hasDataChanged() {
+    return this->modeChanged;
+}
+
+void GameState::clearDataChanged() {
+    this->modeChanged = false;
 }

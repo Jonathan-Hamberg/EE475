@@ -42,7 +42,7 @@ lfsr r;
 MyTimerListener l(&led, &r, &lcd, 0);
 Timer t(8);
 GameState game;
-SPIManager spiManager;
+SPIManager spiManager(&game);
 GameManager gameManager(&spiManager, &game);
 
 

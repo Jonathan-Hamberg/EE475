@@ -8,6 +8,7 @@
 #include <Button.h>
 #include <LFSR.h>
 #include <GameState.h>
+#include <SPIManager.h>
 #include <Timer.h>
 #include <Adafruit_NeoPixel.h>
 #include <LiquidCrystal_I2C.h>
@@ -21,7 +22,7 @@
 class TheButton : public GameModule {
   public:
 
-  TheButton(RGB_LED * led, Button * button, Timer * t, GameState * game, LiquidCrystal_I2C * lcd, Adafruit_NeoPixel * strip);
+  TheButton(RGB_LED * led, Button * button, Timer * t, GameState * game, SPIManager* spiManager, LiquidCrystal_I2C * lcd, Adafruit_NeoPixel * strip);
 
   virtual void init(uint32_t seed);
 
@@ -37,7 +38,7 @@ class TheButton : public GameModule {
 
   void muteOutput();
 
-  void setMode(uint8_t mode);
+  void setMode(ModuleMode mode);
 
   void setColor(uint32_t color);
 
@@ -46,7 +47,7 @@ class TheButton : public GameModule {
   uint32_t buttonColor;
   uint32_t downColor;
 
-  uint8_t mode;
+  ModuleMode mode;
   uint8_t textIndex;
 
   char displayTxt[17];
@@ -59,6 +60,7 @@ class TheButton : public GameModule {
   Timer::timer * currentTimer;
   LiquidCrystal_I2C * lcd;
   Adafruit_NeoPixel * strip;
+  SPIManager* spiManager;
 
   class TheButtonButtonListener : public ButtonListener {
     public:

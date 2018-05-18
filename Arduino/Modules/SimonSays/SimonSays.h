@@ -11,6 +11,7 @@
 #include <Timer.h>
 #include <GameState.h>
 #include "GameModule.h"
+#include "SPIManager.h"
 
 #define RED_INDEX 0
 #define BLUE_INDEX 1
@@ -20,9 +21,10 @@
 #define SIMON_SAYS_LENGTH 6
 
 class SimonSays : public GameModule {
+
   public:
 
-  SimonSays(ShiftIn * in, ShiftOut * out, RGB_LED * led, ButtonManager * buttons, Timer * t, GameState * game);
+  SimonSays(ShiftIn * in, ShiftOut * out, RGB_LED * led, ButtonManager * buttons, Timer * t, GameState * game, SPIManager* manager);
 
   virtual void init(uint32_t seed);
 
@@ -41,7 +43,7 @@ class SimonSays : public GameModule {
     SimonSaysButtonListener(SimonSays *parent);
 
     virtual void onEvent(Button * caller, ButtonEvent event);
-    
+
     private:
 
     bool setButtons();
@@ -53,7 +55,7 @@ class SimonSays : public GameModule {
     void disarmedAction(Button * caller, ButtonEvent event);
 
     void offAction(Button * caller, ButtonEvent event);
-    
+
     SimonSays *parent;
   };
 
@@ -67,7 +69,7 @@ class SimonSays : public GameModule {
     SimonSays *parent;
   };
 
-  void setMode(uint8_t mode);
+  void setMode(ModuleMode mode);
   void muteOutput();
 
   SimonSaysButtonListener buttonListener;
@@ -79,16 +81,17 @@ class SimonSays : public GameModule {
   ButtonManager * buttons;
   Timer * t;
   GameState * game;
+  SPIManager* spiManager;
   lfsr r;
 
   uint8_t colors[SIMON_SAYS_LENGTH];
-  uint8_t mode;
+  ModuleMode mode;
   uint8_t count;
   uint8_t count2;
   uint8_t displayCount;
 
   Timer::timer * currentTimer;
-  
+
 };
 
 #endif // SIMON_SAYS_H

@@ -8,7 +8,8 @@
 const static char text[][STRING_LENGTH] = {"     ABORT      ", "    DETONATE    ", "      HOLD      ", "     PRESS      "};
 const static uint32_t colors[] = {NEO_RED, NEO_GREEN, NEO_BLUE, NEO_YELLOW, NEO_WHITE};
 
-TheButton::TheButton(RGB_LED * led, Button * button, Timer * t, GameState * game, LiquidCrystal_I2C * lcd, Adafruit_NeoPixel * strip): buttonListener(this), timerListener(this) {
+TheButton::TheButton(RGB_LED * led, Button * button, Timer * t, GameState * game,
+       SPIManager* spiManager, LiquidCrystal_I2C * lcd, Adafruit_NeoPixel * strip): buttonListener(this), timerListener(this) {
   this->led = led;
   this->button = button;
   this->t = t;
@@ -17,6 +18,7 @@ TheButton::TheButton(RGB_LED * led, Button * button, Timer * t, GameState * game
   this->strip = strip;
   this->displayTxt[0] = '\0';
   this->displayTxt[17] = '\n';
+  this->spiManager = spiManager;
 
   this->button->attachOnPress(&buttonListener);
   this->button->attachOnRelease(&buttonListener);
@@ -24,7 +26,7 @@ TheButton::TheButton(RGB_LED * led, Button * button, Timer * t, GameState * game
   this->currentTimer = nullptr;
 
   //muteOutput();
-  setMode(MODULE_OFF);
+  setMode(ModuleMode::Off);
 }
 
 void TheButton::init(uint32_t seed) {
@@ -37,28 +39,28 @@ void TheButton::init(uint32_t seed) {
   }
 
   muteOutput();
-  setMode(MODULE_OFF);
+  setMode(ModuleMode::Off);
 }
 
 void TheButton::start() {
   muteOutput();
   setColor(buttonColor);
   lcd->print(displayTxt);
-  setMode(MODULE_ARMED);
+  setMode(ModuleMode::Armed);
   t->detachTimer(currentTimer);
   currentTimer = nullptr;
 }
 
 void TheButton::demo() {
   muteOutput();
-  setMode(MODULE_DEMO);
+  setMode(ModuleMode::Demo);
   t->detachTimer(currentTimer);
   currentTimer = t->attachTimer(&timerListener, 0, 0);
 }
 
 void TheButton::explode() {
   muteOutput();
-  setMode(MODULE_OFF);
+  setMode(ModuleMode::Off);
   t->detachTimer(currentTimer);
   currentTimer = nullptr;
 }
@@ -75,19 +77,19 @@ void TheButton::muteOutput() {
   led->set(0, LED_BLACK);
 }
 
-void TheButton::setMode(uint8_t mode) {
+void TheButton::setMode(ModuleMode mode) {
   this->mode = mode;
   switch (mode) {
-    case MODULE_ARMED:
+    case ModuleMode::Armed:
       led->set(0, LED_RED);
     break;
-    case MODULE_DISARMED:
+    case ModuleMode::Disarmed:
       led->set(0, LED_GREEN);
     break;
-    case MODULE_DEMO:
+    case ModuleMode::Demo:
       led->set(0, LED_BLUE);
     break;
-    case MODULE_OFF:
+    case ModuleMode::Off:
       led->set(0, LED_BLACK);
     break;
     default: break;
@@ -117,7 +119,7 @@ TheButton::TheButtonButtonListener::TheButtonButtonListener(TheButton * parent) 
 
 void TheButton::TheButtonButtonListener::onEvent(Button * caller, ButtonEvent event) {
   Serial.println("Hello");
-  if(parent->mode != MODULE_ARMED) return;
+  if(parent->mode != ModuleMode::Armed) return;
 
   if (event == ButtonEvent::PRESS) {
     if(parent->currentTimer == nullptr) {
@@ -129,54 +131,57 @@ void TheButton::TheButtonButtonListener::onEvent(Button * caller, ButtonEvent ev
     parent->currentTimer = nullptr;
 
     if (parent->quickPress()) {
-      // send disarmed signal
+        parent->spiManager->disarmModule();
       if (parent->currentTimer != nullptr) {
-        parent->setMode(MODULE_DISARMED);
+        parent->setMode(ModuleMode::Disarmed);
         parent->setColor(0);
       } else {
-        //send strike
+        parent->spiManager->strikeModule();
         parent->setColor(parent->buttonColor);
       }
     } else {
       switch (parent->downColor) {
         case NEO_BLUE:
           if (parent->game->timeHasDigit(4)) {
-            //send disarmed signal
-            parent->setMode(MODULE_DISARMED);
+            parent->spiManager->disarmModule();
+            parent->setMode(ModuleMode::Disarmed);
             parent->setColor(0);
           } else {
             parent->setColor(parent->buttonColor);
-            //send strike
+            parent->spiManager->strikeModule();
           }
         break;
         case NEO_WHITE:
           if (parent->game->timeHasDigit(1)) {
-            //send disarmed signal
-            parent->setMode(MODULE_DISARMED);
+
+            parent->spiManager->disarmModule();
+            parent->setMode(ModuleMode::Disarmed);
             parent->setColor(0);
           } else {
             parent->setColor(parent->buttonColor);
-            //send strike
+            parent->spiManager->strikeModule();
           }
         break;
         case NEO_YELLOW:
           if (parent->game->timeHasDigit(5)) {
-            //send disarmed signal
-            parent->setMode(MODULE_DISARMED);
+
+            parent->spiManager->disarmModule();
+            parent->setMode(ModuleMode::Disarmed);
             parent->setColor(0);
           } else {
             parent->setColor(parent->buttonColor);
-            //send strike
+            parent->spiManager->strikeModule();
           }
         break;
         default:
           if (parent->game->timeHasDigit(1)) {
-            //send disarmed signal
-            parent->setMode(MODULE_DISARMED);
+
+            parent->spiManager->disarmModule();
+            parent->setMode(ModuleMode::Disarmed);
             parent->setColor(0);
           } else {
             parent->setColor(parent->buttonColor);
-            //send strike
+            parent->spiManager->strikeModule();
           }
         break;
       }

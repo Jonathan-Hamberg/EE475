@@ -1,50 +1,36 @@
-//
-// Created by jhamberg on 4/3/18.
-//
-
 #ifndef DEFUSER_DEFINITIONS_H
 #define DEFUSER_DEFINITIONS_H
 
 #include <stdint.h>
 
-
-
-
 /**
  *
  */
-enum class TransmitOpCodes : uint8_t {
-    Ignored = 0, // Used when no message is being transmitted.
-    ReceiveAny, // Used to request any message from the module that it wants to send.
-    Mode, // Updates the mode of the module.
-    MaxStrikes, // Updates the maximum number of strikes.
-    Seed, // Updates the modules individual seed.
-    Countdown, // Update the countdown timer for the module.
-    Indicators, // Update the indicator lights on the module.
-    Ports, // Updates the port indicator light on the module.
-    Battery, // Update the batteries on the module.
+enum class OpCode : uint8_t {
+    None = 0, // No op code.  Receive any message the module wants.
+    Mode, // Transmit or receive module mode.
+    Strike, // Transmit or receive system strikes.
+    MaxStrike, // Transmit or receive module max strikes.
+    Countdown, // Transmit or receive module countdown.
+    Indicators, // Transmit or receive module indicators.
+    Ports, // Transmit or receive module ports.
+    Seed, // Transmit or receive module seed.
+    Battery, // Transmit or receive module battery.
+    ModuleType, // Transmit or receive module type.
+    PlaySound, // Receive play sound request.
+    Acknowledge, // Receive acknologment of the strike.
+};
+
+enum class ExtraInformation : uint8_t {
+    Strike = 0x00,
+    PlaySound,
+    Disarm,
 };
 
 /**
  *
  */
-enum class ReceiveOpCodes : uint8_t {
-    Ignored = 0,
-    Mode,
-    Sound,
-    ModuleType,
-    StartGame,
-};
-
-enum class ExtraOpCodes : uint8_t {
-    HasMoreInformation = 0x01,
-    HasStrike = 0x02,
-};
-
-/**
- *
- */
-enum class ModuleTypes : uint8_t {
+enum class ModuleType : uint8_t {
     Wires = 0,
     Button,
     Keypad,
@@ -64,12 +50,11 @@ enum class ModuleTypes : uint8_t {
 /**
  *
  */
-enum class GameMode : uint8_t {
-    Inactive = 0,
-    Active,
-    Defused,
-    Exploded,
-    Demo
+enum class ModuleMode : uint8_t {
+    Off = 0,
+    Demo,
+    Armed,
+    Disarmed
 };
 
 /**
@@ -105,19 +90,19 @@ enum class GamePort : uint8_t {
  *
  */
 enum class PlaySound : uint8_t {
-    Sound1 = 0,
+    NoSound = 0,
+    Sound0,
+    Sound1,
     Sound2,
     Sound3,
-    Sound4,
-    Sound5,
 };
 
 
 /**
  *
  */
-struct SPIReceiveMessage {
-    ReceiveOpCodes address;
+struct SPIMessage {
+    OpCode address;
     uint16_t data;
 };
 

@@ -7,10 +7,10 @@
 /**
  * This is the Game State Object. It holds a local copy of the global game state.
  * This object may have each field set manualy or can be genorated from a seed.
- * 
+ *
  * The game state does not automaticaly update, so all updates must come from the
  * pi over the main bus. This object does not spesify how this comunication works.
- * 
+ *
  * @authors Daniel Predmore, Jonathan Hamberg, Christy Troung
  */
 
@@ -26,7 +26,7 @@ class GameState final {
 
   /**
    * This function builds the bomb from a seed.
-   * 
+   *
    * @param countdownTime the starting time on the clock
    * @param maxStrikes the maximum number of strikes
    * @param seed the seed to build the bomb from
@@ -44,7 +44,7 @@ class GameState final {
   uint8_t getPorts() const;
   uint8_t getBatteries() const;
   const char * getSN() const;
-  GameMode getGameState() const;
+  ModuleMode getGameState() const;
 
   /**
    * These functions set the value of each of the bombs parameters
@@ -52,7 +52,7 @@ class GameState final {
   void setStrikes(uint8_t strikes);
   void setMaxStrikes(uint8_t maxStrikes);
   void setCountdownTime(uint16_t countdownTime);
-  void setGameState(GameMode gameState);
+  void setGameState(ModuleMode gameState);
   void setIndicators(uint16_t indicators);
   void setPorts(uint8_t ports);
   void setBat(uint8_t bat);
@@ -80,7 +80,9 @@ class GameState final {
   void setPS2(bool value);
   void setRJ45(bool value);
   void setSerial(bool value);
-  void setRCA(bool value);  
+  void setRCA(bool value);
+
+  void setField(OpCode op, uint16_t data);
 
   /**
    * These fucntions check the value of each indicator
@@ -109,7 +111,7 @@ class GameState final {
 
   /**
    * This function check to see if a digit is displayed on the golabal counter
-   * 
+   *
    * @param digit the digit to look for
    * @return true if found
    */
@@ -117,17 +119,31 @@ class GameState final {
 
   /**
    * This function check to see if the last digit of the SN is even
-   * 
+   *
    * @return true if the last digit is even
    */
   bool SNisEven();
 
   /**
    * This function checks if the SN has a vowel
-   * 
+   *
    * @return true if a vowel is found
    */
   bool SNhasVowel();
+
+
+  /**
+   *
+   *
+   * @return
+   */
+  bool hasDataChanged();
+
+
+  /**
+   *
+   */
+  void clearDataChanged();
 
     /**
      * GameState desturctor
@@ -138,14 +154,20 @@ class GameState final {
 
   bool getBit(uint16_t value, uint8_t n);
   uint16_t setBit(uint16_t value, uint8_t n, bool b);
-  
+
   uint8_t strikes, maxStrikes;
   uint16_t countdownTime;
   uint16_t indicators;
   uint8_t ports;
   uint8_t bat;
   char sn[7];
-  GameMode gameState;
+  // TODO(jrh) figure out how to incorporate seed into communication.
+  // the seed is needed at the initialization time which is before communication
+  // has been started.
+  uint16_t seed;
+  /// Contains mask to determine if the mode has changed.
+  bool modeChanged;
+  ModuleMode gameState;
 };
 
 #endif // GAME_STATE_H
