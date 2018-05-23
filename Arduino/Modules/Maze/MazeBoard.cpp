@@ -63,12 +63,15 @@ void MazeBoard::setGoal(uint8_t x, uint8_t y) {
 
 bool MazeBoard::move(uint8_t direction) {
   uint8_t currentBlock = MAPS[mapIndex][player.y][player.x / 2];
-  if (currentBlock & 1) {
-    currentBlock = currentBlock & 0xFF;
+  if (player.x & 1) {
+    currentBlock = currentBlock & 0x0F;
   } else {
-    currentBlock = (currentBlock >> 4) & 0xFF;
+    currentBlock = (currentBlock >> 4) & 0x0F;
   }
-  
+  Serial.print("Moving ");
+  Serial.print(currentBlock);
+  Serial.print(", ");
+  Serial.println((currentBlock & (1 << direction)) >> direction);
   switch (direction) {
     case MAZE_LEFT:
       if (currentBlock & 1) {

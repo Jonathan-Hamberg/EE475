@@ -10,6 +10,7 @@
 #include <GameState.h>
 #include <LFSR.h>
 #include <ShiftOut.h>
+#include <SPIManager.h>
 #include "MazeBoard.h"
 
 class Maze : public GameModule {
@@ -34,6 +35,8 @@ class Maze : public GameModule {
   inline bool checkPoints(MazeBoard::point a, MazeBoard::point b);
 
   void muteOutput();
+
+  void setMode(ModuleMode mode);
 
   class MazeButtonListener: public ButtonListener {
     public:
@@ -69,7 +72,7 @@ class Maze : public GameModule {
   ShiftOut * out;
   Adafruit_NeoPixel * strip;
 
-  uint8_t mode;
+  ModuleMode mode;
 };
 
 #endif // MAZE_H
