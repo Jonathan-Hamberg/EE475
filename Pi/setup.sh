@@ -40,7 +40,14 @@ CROSS_ARGS="-DCMAKE_TOOLCHAIN_FILE=cmake/Toolchain-RaspberryPi.cmake"
 if [ $CROSS ] ; then
     if [[ ! -d toolchain ]] ; then
         mkdir toolchain
+        # Clone the cross compile toolchain from the raspberry pi Github page.
         git clone https://github.com/raspberrypi/tools.git toolchain/tools --depth=1
+
+        # Must first run 'sudo apt install libasound2-dev' on the raspberry pi.
+        # Copy over the alsa include files.
+        rsync -rl devbox:/usr/include/alsa toolchain/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/arm-linux-gnueabihf/sysroot/usr/include/
+        # Copy over the also lib files.
+        rsync -rl devbox:/usr/lib/arm-linux-gnueabihf/libasound.so\* toolchain/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/arm-linux-gnueabihf/sysroot/usr/lib/
     fi
 
     GENERATOR="$GENERATOR $CROSS_ARGS"

@@ -4,17 +4,13 @@
 #include "Definitions.h"
 #include "GameState.h"
 #include "ModuleManager.h"
+#include <chrono>
 
 /**
  *
  */
 class GameManager final {
-private:
-    /// Current game state.
-    GameState gameState;
 
-    /// Reference to the module manager.
-    ModuleManager *moduleManager;
 public:
 
     /**
@@ -26,7 +22,7 @@ public:
     /**
     *
     */
-    void generateGameState();
+    void generateGameState(uint16_t seed, uint16_t countdown, uint8_t maxStrikes);
 
     /**
      *
@@ -34,46 +30,76 @@ public:
      */
     const GameState& getGameState();
 
+    void update();
+
+    void updateStateOff();
+
+    void updateStateDemo();
+
+    void updateStateArmed();
+
+    void updateStateDisarmed();
+
     /**
      * Changes state on all modules and performs any changes required to change state.
      * @param state
      */
-    void changeGameMode(GameMode mode);
+    void changeGameMode(ModuleMode mode);
 
     /**
      *
      */
-    void processMessage();
+    void onStart();
 
     /**
      *
      */
-    void updateTime();
+    void onStop();
 
     /**
      *
      */
-    void playSound();
+    void playSound(PlaySound sound);
 
     /**
      *
      */
-    void onStrike();
+    void onStrike(uint8_t address);
 
     /**
      *
      */
-    void onDefuseModule();
+    void onDisarm(uint8_t address);
 
     /**
      *
      */
-    void onDefuseAll();
+    void onDisarmAll();
 
     /**
      *
      */
-    void OnDetonate();
+    void onDetonate();
+
+private:
+
+    /// Current game state.
+    GameState gameState;
+
+    /// Reference to the module manager.
+    ModuleManager *moduleManager;
+
+    ModuleMode currentMode = ModuleMode::Off;
+
+    uint8_t disarmCounter;
+
+    uint8_t numConnectedModules;
+
+    std::chrono::system_clock::time_point stopTime;
+
+    uint16_t seed;
+    uint16_t countdown;
+    uint8_t maxStrikes;
 };
 
 

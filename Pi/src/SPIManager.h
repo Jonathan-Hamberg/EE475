@@ -2,6 +2,7 @@
 #define DEFUSER_SPIMANAGER_H
 
 #include <inttypes.h>
+#include <map>
 #include <Definitions.h>
 
 /**
@@ -11,7 +12,9 @@ class SPIManager final {
 
 private:
     ///
-    uint8_t CS;
+    uint8_t address;
+
+    std::map<uint8_t, uint8_t> extraInformation;
 
 public:
     /**
@@ -36,6 +39,13 @@ public:
      * @param size
      */
     void transfer(uint8_t* buffer, uint32_t size);
+
+    /**
+     *
+     * @param address
+     * @return
+     */
+    bool hasExtraInformation(uint8_t address, ExtraInformation info);
 };
 
 

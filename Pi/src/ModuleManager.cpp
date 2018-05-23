@@ -1,98 +1,153 @@
 #include "ModuleManager.h"
+#include <iostream>
+#include <sound/asound.h>
+
+const char *ModuleTypeStrings[] = {
+        "None",
+        "Wires",
+        "Button",
+        "Keypad",
+        "SimonSays",
+        "WhosOnFirst",
+        "Memory",
+        "MorseCode",
+        "ComplicatedWires",
+        "WireSequence",
+        "Mazes",
+        "Passwords",
+        "VentingGas",
+        "CapacitorDischarge",
+        "Knobs",
+        "Control",
+};
 
 ModuleManager::ModuleManager(SPIManager *manager) {
     this->spiManager = manager;
 }
 
-void ModuleManager::setGlobalSeed(uint16_t seed) {
-    this->seed = seed;
-}
-
-uint16_t ModuleManager::getGlgobalSeed() {
-    return this->seed;
-}
-
-void ModuleManager::queryModules() {
-
-    // Delete previous modules.
-    for (const auto &kv : moduleMap) {
-        delete kv.second;
-    }
-
+void ModuleManager::queryModules(uint16_t seed) {
     // Clear the module map when querying new modules.
     moduleMap.clear();
 
     // Variables used to transmit and receive information from the modules.
     uint8_t buffer[3];
-    uint8_t *address = buffer;
-    auto data = (uint16_t *) (buffer + 1);
 
-    srand(this->getGlgobalSeed());
+    // Used to determine if a control module is present when querying the modules.
+    bool foundControlModule = false;
 
-    for (uint8_t i = 0; i < 12; i++) {
-        // Select the moudle chip at address i.
+    std::cout << "Discovering connected modules..." << std::endl;
+
+    for (uint8_t i = 0; i < 16; i++) {
+        // Select the module chip at address i.
         spiManager->selectCS(i);
 
         // Seed the global seed.  Create new seed for every possible module address.
         auto seed = uint16_t(rand());
+        bool hasModule = false;
 
-        // Construct the transmit structure message.
-        *address = uint8_t(TransmitOpCodes::Ignored) | uint8_t(ReceiveOpCodes::ModuleType) << 4u;
-        *data = 0;
-        spiManager->transfer(buffer, 3);
+        for (uint8_t j = 0; j < 3 && !hasModule; j++) {
+            buffer[0] = uint8_t(OpCode::Seed) | uint8_t(OpCode::ModuleType) << 4u;
+            buffer[1] = uint8_t(seed);
+            buffer[2] = uint8_t(seed >> 8u);
 
-        // Determine if the queried message contains the correct response.
-        bool hasModule = (*address >> 4u) == uint8_t(ReceiveOpCodes::ModuleType) &&
-                         (*address ^ (*data & 0xFFu)) == (*data >> 8u);
-
-        // Don't query the module again if it happened to return the correct
-        // data during the first message transmission.
-        if (!hasModule) {
-            // Transfer the request to the module and receive the data.
             spiManager->transfer(buffer, 3);
 
-            // Determine if the queried message contains the correct response.
-            hasModule = (*address >> 4u) == uint8_t(ReceiveOpCodes::ModuleType) &&
-                        (*address ^ (*data & 0xFFu)) == (*data >> 8u);
+            if (buffer[1] != 0) {
+                hasModule = true;
+            }
+
         }
 
         // If the module has been found then add it to the module map.
         if (hasModule) {
-            auto *myModule = new Module();
+            std::cout << "Discovered " << ModuleTypeStrings[uint8_t(buffer[1])] << " at address " <<
+                      i << "." << std::endl;
+
+            GameState myModule;
+
             // Store the module seed.
-            myModule->setSeed(seed);
+            myModule.setSeed(seed);
+
             // Store the module type.
-            myModule->setModuleType(ModuleTypes(*data & 0xFFu));
+            myModule.setModuleType(ModuleType(buffer[1]));
+
             // Add module to the connected map structure.
             moduleMap.emplace(i, myModule);
+
+            // Determine if this module is the control module.
+            if (myModule.getModuleType() == ModuleType::Control) {
+                this->controllAddress = i;
+                foundControlModule = true;
+            }
         }
     }
+
+    // Determine if the control module was found.
+    if (!foundControlModule) {
+        std::cout << "ModuleManager: Control module was not found when discovering connected devices." << std::endl;
+    }
+
+    std::cout << "Discovering connected modules finished..." << std::endl;
 }
 
-void ModuleManager::updateModules(TransmitOpCodes opCode, uint16_t data) {
+void ModuleManager::updateModules(OpCode opCode, uint16_t data) {
 
     uint8_t buffer[3];
-
-    // Set the transmit address.
     buffer[0] = uint8_t(opCode);
-
-    // Set the transmit data.
-    *(uint16_t *) (&buffer[1]) = data;
+    buffer[1] = uint8_t(data);
+    buffer[2] = uint8_t(data >> 8u);
 
     // Transmit through every connected module.
-    for (const auto &module : moduleMap) {
+    for (auto &module : moduleMap) {
         // Set the chip select line to send the data.
         spiManager->selectCS(module.first);
 
+        // Update the state of the module in the module map.
+        module.second.setField(opCode, data);
+
         // Transmit the data.
         spiManager->transfer(buffer, 3);
-
-        // Respond to the received data from the module.
-        this->receiveCallback(buffer);
     }
-
-
 }
+
+uint16_t ModuleManager::updateModule(OpCode op, uint16_t data, uint8_t address) {
+
+    spiManager->selectCS(address);
+
+    uint8_t buffer[3];
+    buffer[0] = uint8_t(op);
+    buffer[1] = uint8_t(data);
+    buffer[2] = uint8_t(data >> 8);
+
+    spiManager->transfer(buffer, 3);
+
+    return buffer[1] | (buffer[2] << 8u);
+}
+
+uint16_t ModuleManager::updateControlModule(OpCode op, uint16_t data) {
+
+    if (moduleMap.count(uint8_t(ModuleType::Control)) == 0) {
+        // Control module not included, so just return 0.
+        return 0;
+    } else {
+        spiManager->selectCS(controllAddress);
+
+        uint8_t buffer[3];
+        buffer[0] = uint8_t(op);
+        buffer[1] = uint8_t(data);
+        buffer[2] = uint8_t(data >> 8);
+
+        spiManager->transfer(buffer, 3);
+
+        return buffer[1] | (buffer[2] << 8u);
+    }
+}
+
+PlaySound ModuleManager::getPlaySound(uint8_t address) {
+    uint16_t data = updateModule(OpCode::PlaySound, 0, address);
+    return PlaySound(data & 0xFF);
+}
+
 
 void ModuleManager::transmitGameState(const GameState &state) {
 
@@ -101,12 +156,12 @@ void ModuleManager::transmitGameState(const GameState &state) {
     auto data = (uint16_t *) (buffer + 1);
 
     // Transmit game state to all modules.
-    updateModules(TransmitOpCodes::Mode, uint16_t(state.getGameState()));
-    updateModules(TransmitOpCodes::Countdown, state.getCountdownTime());
-    updateModules(TransmitOpCodes::MaxStrikes, state.getMaxStrikes());
-    updateModules(TransmitOpCodes::Indicators, state.getIndicators());
-    updateModules(TransmitOpCodes::Ports, state.getPorts());
-    updateModules(TransmitOpCodes::Battery, state.getBatteries());
+    updateModules(OpCode::Mode, uint16_t(state.getGameState()));
+    updateModules(OpCode::Countdown, state.getCountdownTime());
+    updateModules(OpCode::MaxStrike, state.getMaxStrikes());
+    updateModules(OpCode::Indicators, state.getIndicators());
+    updateModules(OpCode::Ports, state.getPorts());
+    updateModules(OpCode::Battery, state.getBatteries());
 
     // Transmit seeds to each of the individual modules.
     for (const auto &module : moduleMap) {
@@ -114,45 +169,23 @@ void ModuleManager::transmitGameState(const GameState &state) {
         spiManager->selectCS(module.first);
 
         // Transmit the module seed.
-        *address = uint8_t(TransmitOpCodes::Seed);
-        *data = module.second->getSeed();
+        *address = uint8_t(OpCode::Seed);
+        *data = module.second.getSeed();
         spiManager->transfer(buffer, 3);
-
-        this->receiveCallback(buffer);
     }
 }
 
-void ModuleManager::playSound(PlaySound sound) {
-// TODO(jrh) play stuff.
+const std::map<uint8_t, GameState> &ModuleManager::getModules() const {
+    return moduleMap;
 }
 
-
-void ModuleManager::receiveCallback(const SPIReceiveMessage &msg) {
-
-    switch (msg.address) {
-        case ReceiveOpCodes::Sound:
-            playSound(PlaySound(msg.data));
-            break;
-        case ReceiveOpCodes::Ignored:
-            break;
-        case ReceiveOpCodes::Mode:
-            break;
-        case ReceiveOpCodes::ModuleType:
-            break;
-    }
-
+bool ModuleManager::hasExtraInformation(uint8_t address, ExtraInformation info) {
+    return spiManager->hasExtraInformation(address, info);
 }
 
-void ModuleManager::receiveCallback(const uint8_t buffer[3]) {
-
-    // Store data into the structure.
-    SPIReceiveMessage msg{ReceiveOpCodes(buffer[0] >> 4u), *(uint16_t *) (&buffer[1])};
-
-    // Call the strongly typed receiveCallback.
-    receiveCallback(msg);
+bool ModuleManager::controlHasExtraInformation(ExtraInformation info) {
+    return hasExtraInformation(this->controllAddress, info);
 }
-
-
 
 
 

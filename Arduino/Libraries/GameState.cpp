@@ -46,7 +46,7 @@ void GameState::init(uint16_t countdownTime, uint8_t maxStrikes, uint32_t seed) 
     }
     this->sn[5] = uint8_t(r.next() % 10 + '0');
     this->sn[6] = '\0';
-    this->gameState = ModuleMode::Off; 
+    this->gameState = ModuleMode::Off;
     this->modeChanged = false;
 }
 
@@ -86,6 +86,14 @@ ModuleMode GameState::getGameState() const {
     return this->gameState;
 }
 
+uint16_t GameState::getSeed() const {
+    return this->seed;
+}
+
+ModuleType GameState::getModuleType() const {
+    return this->moduleType;
+}
+
 void GameState::setStrikes(uint8_t strikes) {
     this->strikes = strikes;
 }
@@ -113,6 +121,14 @@ void GameState::setPorts(uint8_t ports) {
 
 void GameState::setBat(uint8_t bat) {
     this->bat = bat;
+}
+
+void GameState::setSeed(uint16_t seed) {
+    this->seed = seed;
+}
+
+void GameState::setModuleType(ModuleType moduleType) {
+    this->moduleType = moduleType;
 }
 
 void GameState::setSND(bool value) {
@@ -184,15 +200,12 @@ void GameState::setRCA(bool value) {
 }
 
 void GameState::setField(OpCode op, uint16_t data) {
-    switch(op) {
+    switch (op) {
         case OpCode::Mode:
             this->gameState = ModuleMode(data);
             break;
-        case OpCode::Strike:
-            this->strikes = data;
-            break;
         case OpCode::MaxStrike:
-            this->maxStrikes = data;
+            this->maxStrikes = uint8_t(data);
             break;
         case OpCode::Countdown:
             this->countdownTime = data;
@@ -201,18 +214,22 @@ void GameState::setField(OpCode op, uint16_t data) {
             this->indicators = data;
             break;
         case OpCode::Ports:
-            this->ports = data;
+            this->ports = uint8_t(data);
             break;
         case OpCode::Seed:
             this->seed = data;
             break;
         case OpCode::Battery:
-            this->bat = data;
+            this->bat = uint8_t(data);
+            break;
+        case ::OpCode::ModuleType:
+            this->moduleType = ModuleType(data);
             break;
         default:
             break;
     }
 }
+
 bool GameState::checkSND() {
     return getBit(this->indicators, uint8_t(GameIndicator::Snd));
 }

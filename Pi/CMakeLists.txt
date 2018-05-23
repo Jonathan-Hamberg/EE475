@@ -8,21 +8,39 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS)
 
 include_directories(../Arduino/Libraries)
 
+# Set the source files required for the main defuser application.
 set ( SRC
         src/main.cpp
         src/bcm2835.c
-		src/ModuleManager.cpp src/ModuleManager.h
-		src/SPIManager.cpp src/SPIManager.h
-		src/Module.cpp src/Module.h
-		../Arduino/Libraries/GameState.cpp
+		src/ModuleManager.cpp
+		src/ModuleManager.h
+		src/SPIManager.cpp
+		src/SPIManager.h
+        ../Arduino/Libraries/GameState.cpp
 		../Arduino/Libraries/GameState.h
         ../Arduino/Libraries/LFSR.cpp
 		../Arduino/Libraries/LFSR.h
-		../Arduino/Libraries/Definitions.h src/GameManager.cpp src/GameManager.h)
+		../Arduino/Libraries/Definitions.h
+		src/GameManager.cpp
+		src/GameManager.h src/AlsaSound.cpp src/AlsaSound.h)
 
+# Add executable for the main defuser application.
 add_executable(defuser ${SRC})
 
-# Add custom build command
-add_custom_target(defuser-scp
-        DEPENDS defuser
-        COMMAND "scp ${CMAKE_BINARY_DIR}/defuser devbox:/home/pi ")
+# Add custom command to transfer the executable to the raspberry pi.
+add_custom_command(TARGET defuser POST_BUILD
+		COMMAND scp ${CMAKE_BINARY_DIR}/defuser devbox:~/
+        )
+
+target_link_libraries(defuser asound)
+
+# Add executable for the spi test pragram.
+add_executable(spitest src/spitest.cpp
+		src/SPIManager.h
+		src/SPIManager.cpp
+        src/bcm2835.c)
+
+# Add custom command to transfer the executable to the raspberry pi.
+add_custom_command(TARGET spitest POST_BUILD
+		COMMAND scp ${CMAKE_BINARY_DIR}/spitest devbox:~/
+		)

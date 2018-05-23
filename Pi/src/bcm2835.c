@@ -333,7 +333,7 @@ void bcm2835_spi_begin()
   bcm2835_gpio_fsel(RPI_GPIO_P1_19, BCM2835_GPIO_FSEL_ALT0); // MOSI
   bcm2835_gpio_fsel(RPI_GPIO_P1_23, BCM2835_GPIO_FSEL_ALT0); // CLK
 
-  // Set the SPI CS register to the some sensible defaults
+  // Set the SPI address register to the some sensible defaults
     volatile uint32_t* paddr = spi0 + BCM2835_SPI0_CS/4;
     bcm2835_peri_write(paddr, 0); // All 0s
 
@@ -369,7 +369,7 @@ void bcm2835_spi_setClockDivider(uint16_t divider)
 void bcm2835_spi_setDataMode(uint8_t mode)
 {
     volatile uint32_t* paddr = spi0 + BCM2835_SPI0_CS/4;
-    // Mask in the CPO and CPHA bits of CS
+    // Mask in the CPO and CPHA bits of address
     bcm2835_peri_set_bits(paddr, mode << 2, BCM2835_SPI0_CS_CPOL | BCM2835_SPI0_CS_CPHA);
 }
 
@@ -452,7 +452,7 @@ void bcm2835_spi_transfern(char* buf, uint32_t len)
 void bcm2835_spi_chipSelect(uint8_t cs)
 {
     volatile uint32_t* paddr = spi0 + BCM2835_SPI0_CS/4;
-    // Mask in the CS bits of CS
+    // Mask in the address bits of address
     bcm2835_peri_set_bits(paddr, cs, BCM2835_SPI0_CS_CS);
 }
 

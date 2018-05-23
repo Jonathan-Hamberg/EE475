@@ -8,18 +8,14 @@
 #include "SPIManager.h"
 #include "ModuleManager.h"
 #include "GameManager.h"
-#include <signal.h>
+#include <csignal>
+#include <sstream>
 
 static volatile int keepRunning = 1;
 
-
-/**
- * Flag set by --seed, -s
- * Sets the seed used to generate pseudo-random numbers for each modules.
- */
-int flag_seed = 0;
-int flag_countdown = 120;
-int flag_strikes = 3;
+uint16_t flag_seed = 3968;
+uint16_t flag_countdown = 120;
+uint8_t flag_strikes = 3;
 
 static struct option long_options[] =
         {
@@ -35,7 +31,7 @@ void parseOptions(int argc, char *argv[]) {
     int c;
     int index = 0;
 
-    while ((c = getopt_long(argc, argv, "ds", long_options, &index)) != -1) {
+    while ((c = getopt_long(argc, argv, "s:t:c;", long_options, &index)) != -1) {
 
         // Perform operations on the options.
         switch (c) {
@@ -43,18 +39,18 @@ void parseOptions(int argc, char *argv[]) {
                 break;
 
             case 's':
-                flag_seed = atoi(optarg);
-                // TODO(jrh) remove debugging print statement.
+                flag_seed = uint16_t(strtol(optarg, nullptr, 10));
                 std::cout << "-s " << flag_seed << std::endl;
                 break;
             case 't':
-                flag_strikes = atoi(optarg);
+                flag_strikes = uint8_t(strtol(optarg, nullptr, 10));
                 std::cout << "-t " << flag_strikes << std::endl;
 
                 break;
             case 'c':
-                flag_countdown = atoi(optarg);
+                flag_countdown = uint16_t(strtol(optarg, nullptr, 10));
                 std::cout << "-c " << flag_countdown << std::endl;
+
                 break;
             case '?':
                 break;
@@ -72,7 +68,15 @@ void intHandler(int signal) {
     keepRunning = 0;
 }
 
+
 int main(int argc, char *argv[]) {
+
+    // Determine if the application is run with root privileges.
+    if (geteuid() != 0) {
+        std::cout << "You must be root to run this program." << std::endl;
+        return 1;
+    }
+
     // Parse the command line arguments.
     parseOptions(argc, argv);
 
@@ -89,106 +93,23 @@ int main(int argc, char *argv[]) {
     GameManager gameManager = GameManager(&moduleManager);
 
     // Query the connected modules.
-    moduleManager.queryModules();
+    moduleManager.queryModules(flag_seed);
 
     // Generate the initial game state.
-    gameManager.generateGameState();
+    gameManager.generateGameState(flag_seed, flag_countdown, flag_strikes);
 
     // Transmit the game state to each of the modules.
     moduleManager.transmitGameState(gameManager.getGameState());
 
-    // Determine if the application is run with root privileges.
-    if (geteuid() == 0) {
-        if (!bcm2835_init()) {
-            std::cout << "bcm2835_init() failed..." << std::endl;
-            return 1;
-        }
-    } else {
-        std::cout << "You need to be root to properly run this test program." << std::endl;
-        return 1;
-    }
-
-    std::cout << "Starting SPI Communication Test ..." << std::endl;
-
-    bcm2835_spi_begin();
-
-    // 1024 = 244.140625kHz on Rpi2, 390.625kHz on RPI3
-    bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_1024);
-
-    // BCM2835_SPI_MODE0 CPOL = 0, CPHA = 0
-    // BCM2835_SPI_MODE1 CPOL = 0, CPHA = 1
-    // BCM2835_SPI_MODE2 CPOL = 1, CPHA = 0
-    // BCM2835_SPI_MODE3 CPOL = 1, CPHA = 1
-    bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);
-
-    // Set chip select polarity low.
-    bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, 0);
-    bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS1, 0);
-    bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS2, 0);
-
-    // BCM2835_SPI_BIT_ORDER_LSBFIRST, BCM2835_SPI_BIT_ORDER_MSBFIRST
-    bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_LSBFIRST);
-
-    for (uint32_t i = 0; i < 1000; i++) {
-        // Send on signal.
-        std::cout << "On Signal..." << std::endl;
-
-        // Communicate with module 0.
-        bcm2835_spi_chipSelect(BCM2835_SPI_CS0);
-        bcm2835_spi_transfer(0x0F);
-
-        // Communicate with module 1.
-        bcm2835_spi_chipSelect(BCM2835_SPI_CS1);
-        bcm2835_spi_transfer(0x0F);
+    // Update every 100ms.
+    while(keepRunning) {
+        // Update the state of all the modules.
+        gameManager.update();
 
         // Sleep for 1 second.
-        sleep(1);
+        usleep(1000 * 1000);
 
-        // Send off signal.
-        std::cout << "Off Signal..." << std::endl;
-
-        // Communicate with module 0.
-        bcm2835_spi_chipSelect(BCM2835_SPI_CS0);
-        bcm2835_spi_transfer(0xF0);
-
-        // Communicate with module 1.
-        bcm2835_spi_chipSelect(BCM2835_SPI_CS1);
-        bcm2835_spi_transfer(0xF0);
-
-        sleep(1);
     }
 
-    bcm2835_spi_end();
-
-    std::cout << "Stopping SPI Communication Test..." << std::endl;
-
-    std::cout << "Starting GPIO Communication Test..." << std::endl;
-
-    for (uint32_t i = 0; i < 1000; i++) {
-        bcm2835_gpio_write(RPI_GPIO_P1_03, 0);
-        bcm2835_gpio_write(RPI_GPIO_P1_05, 0);
-        bcm2835_gpio_write(RPI_GPIO_P1_07, 0);
-
-
-        bcm2835_gpio_write(RPI_GPIO_P1_03, 1);
-        bcm2835_gpio_write(RPI_GPIO_P1_05, 1);
-        bcm2835_gpio_write(RPI_GPIO_P1_07, 1);
-    }
-
-    std::cout << "Stopping GPIO Communication Test..." << std::endl;
-
-    std::cout << "bcm2835_close()" << std::endl;
-    if (!bcm2835_close()) {
-        std::cout << "bcm2835_close() failed..." << std::endl;
-        return 1;
-    }
-
-    // Update all the modules every 100 ms.
-    while (keepRunning) {
-
-        // Sleep for 100 ms until the next update.
-        usleep(100 * 1000);
-    }
-
-    return 0;
+    return EXIT_SUCCESS;
 }

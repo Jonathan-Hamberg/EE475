@@ -45,6 +45,8 @@ class GameState final {
   uint8_t getBatteries() const;
   const char * getSN() const;
   ModuleMode getGameState() const;
+  uint16_t getSeed() const;
+  ModuleType getModuleType() const;
 
   /**
    * These functions set the value of each of the bombs parameters
@@ -56,6 +58,8 @@ class GameState final {
   void setIndicators(uint16_t indicators);
   void setPorts(uint8_t ports);
   void setBat(uint8_t bat);
+  void setSeed(uint16_t seed);
+  void setModuleType(ModuleType moduleType);
 
   /**
    * Each of these functions sets the value of an indicator
@@ -165,6 +169,7 @@ class GameState final {
   // the seed is needed at the initialization time which is before communication
   // has been started.
   uint16_t seed;
+  ModuleType moduleType;
   /// Contains mask to determine if the mode has changed.
   bool modeChanged;
   ModuleMode gameState;

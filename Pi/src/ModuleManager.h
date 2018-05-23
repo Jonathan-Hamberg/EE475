@@ -3,8 +3,8 @@
 
 #include <vector>
 #include <map>
+#include <queue>
 #include "GameState.h"
-#include "Module.h"
 #include "SPIManager.h"
 #include "Definitions.h"
 
@@ -16,18 +16,6 @@ public:
 
     /**
      *
-     * @param seed
-     */
-    void setGlobalSeed(uint16_t seed);
-
-    /**
-     *
-     * @return
-     */
-    uint16_t getGlgobalSeed();
-
-    /**
-     *
      * @param manager
      */
     explicit ModuleManager(SPIManager* manager);
@@ -35,13 +23,42 @@ public:
     /**
      *
      */
-    void queryModules();
+    void queryModules(uint16_t seed);
+
+    /**
+     *
+     * @return
+     */
+    const std::map<uint8_t, GameState>& getModules() const;
 
     /**
      *
      */
-    void updateModules(TransmitOpCodes opCode, uint16_t data);
+    void updateModules(OpCode opCode, uint16_t data);
 
+    /**
+     *
+     * @param data
+     * @param address
+     */
+    uint16_t updateModule(OpCode op, uint16_t data, uint8_t address);
+
+    /**
+     *
+     * @param op
+     * @param data
+     * @return
+     */
+    uint16_t updateControlModule(OpCode op, uint16_t data);
+
+    /**
+     *
+     * @param info
+     * @return
+     */
+    bool controlHasExtraInformation(ExtraInformation info);
+
+    PlaySound getPlaySound(uint8_t address);
     /**
      *
      * @param state
@@ -50,32 +67,24 @@ public:
 
     /**
      *
-     * @param sound
+     * @param address
+     * @param info
+     * @return
      */
-    void playSound(PlaySound sound);
+    bool hasExtraInformation(uint8_t address, ExtraInformation info);
 
 private:
 
-    /**
-     *
-     * @param msg
-     */
-    void receiveCallback(const SPIReceiveMessage& msg);
-
-    /**
-     *
-     * @param buffer
-     */
-    void receiveCallback(const uint8_t buffer[3]);
-
     ///
-    std::map<uint8_t, Module*> moduleMap;
+    std::map<uint8_t, GameState> moduleMap;
 
     ///
     SPIManager* spiManager;
 
-    ///
-    uint16_t seed;
+    std::queue<std::pair<uint8_t, SPIReceiveMessage>> messageQueue;
+
+    // Contains the address of the control module.
+    uint8_t controllAddress = 0xFF;
 };
 
 #endif //DEFUSER_MODULEMANAGER_H

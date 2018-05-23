@@ -2,23 +2,17 @@
 #include "bcm2835.h"
 #include <iostream>
 
-/**
- *  TODO(jrh) document.
- */
-static const uint8_t decoderEnable = 3;
-
-/**
- * TODO(jrh) document.
- */
-static const uint8_t decoderAddress[4] = {2, 3, 4, 14};
+static const uint8_t decoderAddress[4] = {0, 5, 6, 13};
 
 SPIManager::SPIManager() {
 
+    // Initialize the bcm2835 library.
     if (!bcm2835_init()) {
         std::cout << "bcm2835_init() failed..." << std::endl;
         return;
     }
 
+    // Enable the SPI module on the pi zero.
     bcm2835_spi_begin();
 
     /*
@@ -57,10 +51,15 @@ SPIManager::SPIManager() {
      * BCM2835_SPI_BIT_ORDER_LSBFIRST
      * BCM2835_SPI_BIT_ORDER_MSBFIRST
      */
-    bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_LSBFIRST);
+    bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);
 
     // Set the default chip select.
-    CS = 0;
+    address = 0;
+
+    // Set the decoder address bits to be outputs.
+    for (unsigned char pin : decoderAddress) {
+        bcm2835_gpio_fsel(pin, BCM2835_GPIO_FSEL_OUTP);
+    }
 }
 
 SPIManager::~SPIManager() {
@@ -70,11 +69,16 @@ SPIManager::~SPIManager() {
 }
 
 void SPIManager::selectCS(uint8_t address) {
-    // TODO(jrh) put range checking values into const not-magic number.
-    if (address <= 0 || address >= 13) {
+    if(this->address == address) {
+        return;
+    }
+
+    if (address < 0 || address >= 13) {
         std::cout << "Invalid SPI address." << std::endl;
         return;
     }
+
+    this->address = address;
 
     for (auto addr : decoderAddress) {
         // Write the address bits to the decoder.
@@ -85,12 +89,20 @@ void SPIManager::selectCS(uint8_t address) {
 }
 
 void SPIManager::transfer(uint8_t *buffer, uint32_t size) {
-    // Enable the module chip select.
-    bcm2835_gpio_set(decoderEnable);
-
     // Transfer the data to the module.
     bcm2835_spi_transfern((char *) buffer, size);
 
-    // Disable the module chip select.
-    bcm2835_gpio_clr(decoderEnable);
+    // Update the extra information fields.
+    extraInformation.emplace(address, buffer[0]);
+}
+
+bool SPIManager::hasExtraInformation(uint8_t address, ExtraInformation info) {
+
+    // If the address doesn't exist then return false.
+    if(extraInformation.count(address) == 0) {
+        return false;
+    }
+
+    // Return true if if the particular extra info is present.
+    return (extraInformation[address] & (1u << uint8_t(info))) != 0;
 }

@@ -1,0 +1,11 @@
+Automatic Deployment
+
+1. Create SSH alias corresponding to the IP address of the Raspberry Pi Zero.
+    Host devbox
+        User Pi
+        HostName 192.168.0.0
+        IdentityFile ~/.ssh/rsa_id
+
+2. Share the user account public key with Raspberry Pi Zero ssh-copy-id.
+
+3. Start ssh-agent and ssh-add in shell that is used to instantiate the CLion instance.

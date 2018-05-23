@@ -9,7 +9,7 @@
 enum class OpCode : uint8_t {
     None = 0, // No op code.  Receive any message the module wants.
     Mode, // Transmit or receive module mode.
-    Strike, // Transmit or receive system strikes.
+    Strike, // Transmit module strikes left.
     MaxStrike, // Transmit or receive module max strikes.
     Countdown, // Transmit or receive module countdown.
     Indicators, // Transmit or receive module indicators.
@@ -18,20 +18,23 @@ enum class OpCode : uint8_t {
     Battery, // Transmit or receive module battery.
     ModuleType, // Transmit or receive module type.
     PlaySound, // Receive play sound request.
-    Acknowledge, // Receive acknologment of the strike.
+    Acknowledge, // Receive acknowledgment of the strike.
 };
 
 enum class ExtraInformation : uint8_t {
     Strike = 0x00,
     PlaySound,
     Disarm,
+    StartGame,
+    StopGame,
 };
 
 /**
  *
  */
 enum class ModuleType : uint8_t {
-    Wires = 0,
+    None,
+    Wires,
     Button,
     Keypad,
     SimonSays,
@@ -45,7 +48,10 @@ enum class ModuleType : uint8_t {
     VentingGas,
     CapacitorDischarge,
     Knobs,
+    Control,
 };
+
+
 
 /**
  *
@@ -91,18 +97,20 @@ enum class GamePort : uint8_t {
  */
 enum class PlaySound : uint8_t {
     NoSound = 0,
-    Sound0,
-    Sound1,
-    Sound2,
-    Sound3,
+    Strike,
+    Disarm,
+    Explode,
+    Defuse,
 };
 
 
 /**
  *
  */
-struct SPIMessage {
-    OpCode address;
+struct SPIReceiveMessage {
+    uint8_t address;
+    OpCode op;
+    uint8_t information;
     uint16_t data;
 };
 
