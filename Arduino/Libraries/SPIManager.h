@@ -39,6 +39,10 @@ public:
     void strikeModule();
 
     void disarmModule();
+
+    void startGame();
+
+    void stopGame();
 private:
     
     ///

@@ -49,6 +49,7 @@ enum class ModuleType : uint8_t {
     CapacitorDischarge,
     Knobs,
     Control,
+    Symbols,
 };
 
 
