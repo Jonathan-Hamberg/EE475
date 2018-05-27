@@ -98,10 +98,15 @@ enum class GamePort : uint8_t {
  */
 enum class PlaySound : uint8_t {
     NoSound = 0,
-    Strike,
-    Disarm,
-    Explode,
-    Defuse,
+    Defused,
+    Detonate,
+    Key1,
+    Key2,
+    Key3,
+    Key4,
+    Lose,
+    Win,
+    Strike
 };
 
 

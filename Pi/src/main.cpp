@@ -14,7 +14,7 @@
 static volatile int keepRunning = 1;
 
 uint16_t flag_seed = 3968;
-uint16_t flag_countdown = 120;
+uint16_t flag_countdown = 15;
 uint8_t flag_strikes = 3;
 
 static struct option long_options[] =
@@ -62,7 +62,7 @@ void parseOptions(int argc, char *argv[]) {
 
 void intHandler(int signal) {
     // Unused parameter
-    (void)(signal);
+    (void) (signal);
 
     // Tell the main program to stop.
     keepRunning = 0;
@@ -92,17 +92,12 @@ int main(int argc, char *argv[]) {
     // Create the game manager object.
     GameManager gameManager = GameManager(&moduleManager);
 
-    // Query the connected modules.
-    moduleManager.queryModules(flag_seed);
-
-    // Generate the initial game state.
     gameManager.generateGameState(flag_seed, flag_countdown, flag_strikes);
 
-    // Transmit the game state to each of the modules.
-    moduleManager.transmitGameState(gameManager.getGameState());
+    moduleManager.queryModules(flag_seed);
 
     // Update every 100ms.
-    while(keepRunning) {
+    while (keepRunning) {
         // Update the state of all the modules.
         gameManager.update();
 

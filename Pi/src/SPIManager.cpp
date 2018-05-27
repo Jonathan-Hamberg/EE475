@@ -69,10 +69,6 @@ SPIManager::~SPIManager() {
 }
 
 void SPIManager::selectCS(uint8_t address) {
-    if(this->address == address) {
-        return;
-    }
-
     if (address < 0 || address >= 13) {
         std::cout << "Invalid SPI address." << std::endl;
         return;
@@ -93,16 +89,32 @@ void SPIManager::transfer(uint8_t *buffer, uint32_t size) {
     bcm2835_spi_transfern((char *) buffer, size);
 
     // Update the extra information fields.
-    extraInformation.emplace(address, buffer[0]);
+    if (extraInformation.count(address) == 0) {
+        // If address not found just put the status byte in.
+        extraInformation.emplace(address, buffer[0]);
+    } else {
+        // Logical or the status to what is currently in the map.
+        extraInformation[address] |= buffer[0];
+    }
 }
 
 bool SPIManager::hasExtraInformation(uint8_t address, ExtraInformation info) {
 
     // If the address doesn't exist then return false.
-    if(extraInformation.count(address) == 0) {
+    if (extraInformation.count(address) == 0) {
         return false;
     }
 
     // Return true if if the particular extra info is present.
-    return (extraInformation[address] & (1u << uint8_t(info))) != 0;
+    if ((extraInformation[address] & (1u << uint8_t(info))) != 0) {
+        // Turn off the bit one it has been read.
+        extraInformation[address] &= ~(1u << uint8_t(info));
+
+        // Return true if the info was present.
+        return true;
+    }
+
+    // Return false if the info was not present.
+    return false;
+
 }

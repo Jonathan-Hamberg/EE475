@@ -44,10 +44,12 @@ if [ $CROSS ] ; then
         git clone https://github.com/raspberrypi/tools.git toolchain/tools --depth=1
 
         # Must first run 'sudo apt install libasound2-dev' on the raspberry pi.
-        # Copy over the alsa include files.
+        # Copy over the required include files.
         rsync -rl devbox:/usr/include/alsa toolchain/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/arm-linux-gnueabihf/sysroot/usr/include/
-        # Copy over the also lib files.
+        rsync -rl devbox:/usr/include/vorbis toolchain/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/arm-linux-gnueabihf/sysroot/usr/include/
+        # Copy over the required lib files.
         rsync -rl devbox:/usr/lib/arm-linux-gnueabihf/libasound.so\* toolchain/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/arm-linux-gnueabihf/sysroot/usr/lib/
+        rsync -rl devbox:/usr/lib/arm-linux-gnueabihf/libvorbisfile.so\* toolchain/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/arm-linux-gnueabihf/sysroot/usr/lib/
     fi
 
     GENERATOR="$GENERATOR $CROSS_ARGS"

@@ -22,7 +22,9 @@ set ( SRC
 		../Arduino/Libraries/LFSR.h
 		../Arduino/Libraries/Definitions.h
 		src/GameManager.cpp
-		src/GameManager.h src/AlsaSound.cpp src/AlsaSound.h)
+		src/GameManager.h
+		src/SoundManager.h
+		src/SoundManager.cpp)
 
 # Add executable for the main defuser application.
 add_executable(defuser ${SRC})
@@ -30,9 +32,10 @@ add_executable(defuser ${SRC})
 # Add custom command to transfer the executable to the raspberry pi.
 add_custom_command(TARGET defuser POST_BUILD
 		COMMAND scp ${CMAKE_BINARY_DIR}/defuser devbox:~/
+        COMMAND rsync -rl Resources devbox:~/
         )
 
-target_link_libraries(defuser asound)
+target_link_libraries(defuser asound vorbisfile pthread)
 
 # Add executable for the spi test pragram.
 add_executable(spitest src/spitest.cpp

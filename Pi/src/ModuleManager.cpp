@@ -37,7 +37,7 @@ void ModuleManager::queryModules(uint16_t seed) {
 
     std::cout << "Discovering connected modules..." << std::endl;
 
-    for (uint8_t i = 0; i < 16; i++) {
+    for (uint8_t i = 0; i < 13; i++) {
         // Select the module chip at address i.
         spiManager->selectCS(i);
 
@@ -52,16 +52,14 @@ void ModuleManager::queryModules(uint16_t seed) {
 
             spiManager->transfer(buffer, 3);
 
-            if (buffer[1] != 0) {
+            if (buffer[1] != 0 && buffer[2] == 0xFF) {
                 hasModule = true;
             }
-
         }
 
         // If the module has been found then add it to the module map.
         if (hasModule) {
-            std::cout << "Discovered " << ModuleTypeStrings[uint8_t(buffer[1])] << " at address " <<
-                      i << "." << std::endl;
+
 
             GameState myModule;
 
@@ -73,13 +71,21 @@ void ModuleManager::queryModules(uint16_t seed) {
 
             // Add module to the connected map structure.
             moduleMap.emplace(i, myModule);
-
-            // Determine if this module is the control module.
-            if (myModule.getModuleType() == ModuleType::Control) {
-                this->controllAddress = i;
-                foundControlModule = true;
-            }
         }
+    }
+
+    // Iterate through all the discovered modules on the SPI bus.
+    for(const auto& kv : moduleMap) {
+
+        // Determine if the control module is part of the connected modules.
+        if(kv.second.getModuleType() == ModuleType::Control) {
+            this->controllAddress = kv.first;
+            foundControlModule = true;
+        }
+
+        // Print to the console which modules have been discovered.
+        std::cout << "Discovered " << ModuleTypeStrings[uint8_t(kv.second.getModuleType())] << " at address " <<
+                  int(kv.first) << "." << std::endl;
     }
 
     // Determine if the control module was found.
@@ -126,8 +132,10 @@ uint16_t ModuleManager::updateModule(OpCode op, uint16_t data, uint8_t address) 
 
 uint16_t ModuleManager::updateControlModule(OpCode op, uint16_t data) {
 
-    if (moduleMap.count(uint8_t(ModuleType::Control)) == 0) {
+
+    if (this->controllAddress > 13) {
         // Control module not included, so just return 0.
+        std::cout << "updateControlModule() failed because Control module not present." << std::endl;
         return 0;
     } else {
         spiManager->selectCS(controllAddress);
@@ -186,6 +194,3 @@ bool ModuleManager::hasExtraInformation(uint8_t address, ExtraInformation info) 
 bool ModuleManager::controlHasExtraInformation(ExtraInformation info) {
     return hasExtraInformation(this->controllAddress, info);
 }
-
-
-

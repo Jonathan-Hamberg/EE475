@@ -13,7 +13,7 @@ GameManager::GameManager(ModuleManager *moduleManager) {
 void GameManager::generateGameState(uint16_t seed, uint16_t countdown, uint8_t maxStrikes) {
     // Print debugging information.
     std::cout << "generateGameState(seed: " << seed <<
-              ",countdown: " << countdown << ",maxStrikes: " << maxStrikes << std::endl;
+              ",countdown: " << countdown << ",maxStrikes: " << int(maxStrikes) << std::endl;
 
     // Store the parameters used to generate the game state.
     this->seed = seed;
@@ -51,42 +51,42 @@ void GameManager::update() {
 
 
 void GameManager::updateStateOff() {
-    // TODO(jrh) test the wait for the user to start the game.
+    // Send the acknowledge to look for the start bit.
+    moduleManager->updateControlModule(OpCode::Acknowledge, 0);
+
+    // Check to see if the game is to be started.
     if (moduleManager->controlHasExtraInformation(ExtraInformation::StartGame)) {
         onStart();
     }
 }
 
 void GameManager::updateStateDemo() {
-    // TODO(jrh) test wait for the user to start the game.
+    // Send the acknowledge to look for the start bit.
+    moduleManager->updateControlModule(OpCode::Acknowledge, 0);
+
+    // Check to see if the game is to be started.
     if (moduleManager->controlHasExtraInformation(ExtraInformation::StartGame)) {
         onStart();
     }
 }
 
 void GameManager::updateStateArmed() {
-    // TODO(jrh) test update the countdown timer.
     // Update the countdown of the defuser.
-    int16_t currentCountdown = uint16_t((stopTime - std::chrono::system_clock::now()).count());
+    int16_t currentCountdown = int16_t(std::chrono::duration_cast<std::chrono::seconds>(stopTime - std::chrono::system_clock::now()).count());
 
-    // Countdown has run out of time.  Detonate the defuser.
-    if (currentCountdown < 0) {
-        onDetonate();
-    }
+    std::cout << "currentCountdown: " << currentCountdown << std::endl;
 
     // Update the current countdown for all the modules.
-    if (gameState.getCountdownTime() != currentCountdown) {
+    gameState.setCountdownTime(uint16_t(currentCountdown));
+    if (currentCountdown > 0) {
         moduleManager->updateModules(OpCode::Countdown, uint16_t(currentCountdown));
+    } else {
+        onDetonate();
     }
 
     // Check to see if the user wants to end the game.
     if (moduleManager->controlHasExtraInformation(ExtraInformation::StopGame)) {
         onStop();
-    }
-
-    // TODO(jrh) test the out of time case.
-    if (this->gameState.getCountdownTime() == 0) {
-        onDetonate();
     }
 
     // Iterate through all the connected modules to look for strikes and disarm commands.
@@ -99,6 +99,9 @@ void GameManager::updateStateArmed() {
             onDisarm(kv.first);
         }
     }
+
+    // Acknowledge any status indicators from the modules.
+    moduleManager->updateModules(OpCode::Acknowledge, 0);
 }
 
 void GameManager::updateStateDisarmed() {
@@ -106,21 +109,28 @@ void GameManager::updateStateDisarmed() {
 }
 
 void GameManager::onStart() {
+    // Reset the disarm counter.
     disarmCounter = 0;
 
-    // Update all the modules to be in the off state.
-    moduleManager->updateModules(OpCode::Mode, uint16_t(ModuleMode::Off));
+    // Generate the initial game state.
+    generateGameState(seed, countdown, maxStrikes);
 
-    // TODO(jrh) find a way to pass the seed.
-    // Discovering the modules will transmit the module seed.  The act of transmitting the module seed when the
-    // module is in the off state will initialize the module.
-    moduleManager->queryModules(3968);
+    // Query the connected modules.
+    moduleManager->queryModules(seed);
+
+    // Transfer game state to all the modules.
+    moduleManager->transmitGameState(gameState);
 
     // The number of connected modules is the number of total modules minus the control module.
-    numConnectedModules = uint8_t(moduleManager->getModules().size() - 1);
+//    numConnectedModules = uint8_t(moduleManager->getModules().size() - 1);
+// TODO(jrh) add the -1 back to the modules.
+    numConnectedModules = uint8_t(moduleManager->getModules().size());
 
     // Store the start time of the defuser.
-    stopTime = std::chrono::system_clock::now() + std::chrono::seconds();
+    stopTime = std::chrono::system_clock::now() + std::chrono::seconds(countdown);
+
+    // Set the next state of the FSM.
+    currentMode = ModuleMode::Armed;
 }
 
 void GameManager::onStop() {
@@ -134,19 +144,16 @@ void GameManager::playSound(PlaySound sound) {
 void GameManager::onStrike(uint8_t address) {
 
     // Update the console.
-    std::cout << "onStrike(" << address << ")..." << std::endl;
+    std::cout << "onStrike(" << int(address) << ")..." << std::endl;
 
-    // Acknowledge strike.
-    moduleManager->updateModule(OpCode::Acknowledge, 0, address);
-
-    // Update the strikes in the game state.
+        // Update the strikes in the game state.
     this->gameState.setStrikes(uint8_t(this->gameState.getStrikes() + 1u));
 
     // Update all the modules on the new strike.
     moduleManager->updateModules(OpCode::Strike, this->gameState.getStrikes());
 
     // Check to see if the defuser has been detonated.
-    if (gameState.getStrikes() >= gameState.getMaxStrikes()) {
+    if (gameState.getStrikes() >= this->maxStrikes) {
         onDetonate();
     }
 }
@@ -175,10 +182,14 @@ void GameManager::onDisarmAll() {
 
     // Update all the modules to be disarmed.
     moduleManager->updateModules(OpCode::Mode, uint16_t(ModuleMode::Disarmed));
+
+    // Update the state of the device.
+    currentMode = ModuleMode::Off;
 }
 
 void GameManager::onDetonate() {
     std::cout << "onDetonate()" << std::endl;
+    currentMode = ModuleMode::Off;
 }
 
 
