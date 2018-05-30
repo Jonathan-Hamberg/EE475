@@ -19,7 +19,7 @@ ShiftOut out;
 ShiftIn in(REG_CLOCK, IN_LOAD_PIN, DATA_IN_PIN, 1);
 RGB_LED led(&out, 5, 0, 6, 0, 7, 0);
 ButtonManager buttons(0, 4, &in);
-Timer t(8);
+Timer t(1);
 GameState game;
 SPIManager spiManager(&game);
 SimonSays module(&in, &out, &led, &buttons, &t, &game, &spiManager);

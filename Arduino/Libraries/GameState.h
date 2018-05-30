@@ -1,28 +1,28 @@
 #ifndef GAME_STATE_H
 #define GAME_STATE_H
 
-#include <stdint.h>
 #include <Definitions.h>
+#include <stdint.h>
 
 /**
- * This is the Game State Object. It holds a local copy of the global game state.
- * This object may have each field set manualy or can be genorated from a seed.
+ * This is the Game State Object. It holds a local copy of the global game
+ * state. This object may have each field set manualy or can be genorated from a
+ * seed.
  *
- * The game state does not automaticaly update, so all updates must come from the
- * pi over the main bus. This object does not spesify how this comunication works.
+ * The game state does not automaticaly update, so all updates must come from
+ * the pi over the main bus. This object does not spesify how this comunication
+ * works.
  *
  * @authors Daniel Predmore, Jonathan Hamberg, Christy Troung
  */
 
 class GameState final {
-  public:
-
+ public:
   /**
    * This is the default constructor it does not set any of the objects fields
    * exept the game state to pre game
    */
   GameState();
-
 
   /**
    * This function builds the bomb from a seed.
@@ -34,6 +34,11 @@ class GameState final {
   void init(uint16_t countdownTime, uint8_t maxStrikes, uint32_t seed);
 
   /**
+   * Initialize the SN based on the current seed of the game module.
+   */
+  void initSN();
+
+  /**
    * These are the getter functions. Each one returns the corisponding value
    */
   uint8_t getStrikes() const;
@@ -43,7 +48,7 @@ class GameState final {
   uint16_t getIndicators() const;
   uint8_t getPorts() const;
   uint8_t getBatteries() const;
-  const char * getSN() const;
+  const char* getSN() const;
   ModuleMode getGameState() const;
   uint16_t getSeed() const;
   ModuleType getModuleType() const;
@@ -59,6 +64,7 @@ class GameState final {
   void setPorts(uint8_t ports);
   void setBat(uint8_t bat);
   void setSeed(uint16_t seed);
+  void setSN(uint16_t digits);
   void setModuleType(ModuleType moduleType);
 
   /**
@@ -135,28 +141,38 @@ class GameState final {
    */
   bool SNhasVowel();
 
-
   /**
    *
    *
    * @return
    */
-  bool hasDataChanged();
+  bool hasModeChanged();
 
+  /**
+   * GameState desturctor
+   */
+  ~GameState() = default;
+
+ private:
+  /**
+   *
+   *
+   * @param value
+   * @param n
+   *
+   * @return
+   */
+  bool getBit(uint16_t value, uint8_t n);
 
   /**
    *
+   *
+   * @param value
+   * @param n
+   * @param b
+   *
+   * @return
    */
-  void clearDataChanged();
-
-    /**
-     * GameState desturctor
-     */
-    ~GameState() = default;
-
-  private:
-
-  bool getBit(uint16_t value, uint8_t n);
   uint16_t setBit(uint16_t value, uint8_t n, bool b);
 
   uint8_t strikes, maxStrikes;
@@ -165,9 +181,6 @@ class GameState final {
   uint8_t ports;
   uint8_t bat;
   char sn[7];
-  // TODO(jrh) figure out how to incorporate seed into communication.
-  // the seed is needed at the initialization time which is before communication
-  // has been started.
   uint16_t seed;
   ModuleType moduleType;
   /// Contains mask to determine if the mode has changed.
@@ -175,4 +188,4 @@ class GameState final {
   ModuleMode gameState;
 };
 
-#endif // GAME_STATE_H
+#endif  // GAME_STATE_H

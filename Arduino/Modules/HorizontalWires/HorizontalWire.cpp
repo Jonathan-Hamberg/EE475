@@ -284,7 +284,7 @@ void HorizontalWire::HorizontalWireButtonListener::onEvent(Button * caller, Butt
     } else {
       parent->led->set(caller->getID(), LED_BLACK);
     }
-  } else if (this->parent->mode == MODULE_ARMED && event == ButtonEvent::RELESE) {
+  } else if (this->parent->mode == MODULE_ARMED && event == ButtonEvent::RELEASE) {
     Serial.println("Game Event");
     if (caller->getID() == parent->wireIndex[parent->target]) {
       parent->setMode(MODULE_DISARMED);

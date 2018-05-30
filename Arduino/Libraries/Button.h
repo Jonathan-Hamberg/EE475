@@ -19,8 +19,8 @@ class Button;
 /**
  * This enum holds the diffent states of a button
  */
-enum ButtonEvent {
-  PRESS, RELESE, DOWN, UP
+enum class ButtonEvent {
+  PRESS, RELEASE, DOWN, UP
 };
 
 /**

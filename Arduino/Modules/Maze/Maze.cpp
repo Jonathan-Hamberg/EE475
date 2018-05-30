@@ -139,7 +139,7 @@ Maze::MazeButtonListener::MazeButtonListener(Maze * parent) {
 }
 
 void Maze::MazeButtonListener::onEvent(Button * caller, ButtonEvent event) {
-  if (event == ButtonEvent::RELESE) {
+  if (event == ButtonEvent::RELEASE) {
     parent->out->set(caller->getID(), 0, false);
   } else {
     if (parent->mode == ModuleMode::Armed) {

@@ -48,7 +48,7 @@ void Button::load(bool val) {
   if (value == 127 && prs != nullptr) {
     prs->onEvent(this, ButtonEvent::PRESS);
   } else if (value == 254 && rel != nullptr) {
-    rel->onEvent(this, ButtonEvent::RELESE);
+    rel->onEvent(this, ButtonEvent::RELEASE);
   }
 }
 

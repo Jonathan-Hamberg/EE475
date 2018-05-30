@@ -179,7 +179,7 @@ void SimonSays::SimonSaysButtonListener::armedAction(Button * caller, ButtonEven
       parent->spiManager->strikeModule();
     }
 
-  } else if (event == ButtonEvent::RELESE) {
+  } else if (event == ButtonEvent::RELEASE) {
     if (allDown && parent->currentTimer == nullptr) {
       parent->currentTimer = parent->t->attachTimer(&(parent->timerListener), LONG_DELAY, 0);
       parent->displayCount = 0;

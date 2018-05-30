@@ -8,7 +8,7 @@ print(len(img))
 print(len(img[0]))
 print(img[0, 0])
 
-numItems = 26
+numItems = 27
 output = []
 
 byteValue = 0

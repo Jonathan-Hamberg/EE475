@@ -25,7 +25,7 @@ void MyButtonListener::onEvent(Button* caller, ButtonEvent event) {
     }
   }
 
-  if (event == ButtonEvent::RELESE) {
+  if (event == ButtonEvent::RELEASE) {
     lcd->print("U");
     return;
   } else {
