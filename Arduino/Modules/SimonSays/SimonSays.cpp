@@ -8,14 +8,15 @@
 #define VOWEL_MAP {BLUE_INDEX, RED_INDEX, YELLOW_INDEX, GREEN_INDEX, YELLOW_INDEX, GREEN_INDEX, BLUE_INDEX, RED_INDEX, GREEN_INDEX, RED_INDEX, YELLOW_INDEX, BLUE_INDEX}
 #define NO_VOWEL_MAP {BLUE_INDEX, YELLOW_INDEX, GREEN_INDEX, RED_INDEX, RED_INDEX, BLUE_INDEX, YELLOW_INDEX, GREEN_INDEX, YELLOW_INDEX, GREEN_INDEX, BLUE_INDEX, RED_INDEX}
 
-SimonSays::SimonSays(ShiftIn * in, ShiftOut * out, RGB_LED * led, ButtonManager * buttons, Timer * t, GameState * game, SPIManager* manager): buttonListener(this) , timerListener(this){
+SimonSays::SimonSays(ShiftIn * in, ShiftOut * out, RGB_LED * led, ButtonManager * buttons, Timer * t, ArduinoGameManager * gameManager): buttonListener(this) , timerListener(this){
   this->in = in;
   this->out = out;
   this->led = led;
   this->buttons = buttons;
   this->t = t;
-  this->game = game;
-  this->spiManager = manager;
+  this->gameManager = gameManager;
+  this->gameManager->setGameModule(this);
+  this->game = &gameManager->getGameState();
   currentTimer = nullptr;
   init(r.next());
   muteOutput();
@@ -108,6 +109,7 @@ void SimonSays::SimonSaysButtonListener::onEvent(Button * caller, ButtonEvent ev
     break;
     case ModuleMode::Disarmed:
       disarmedAction(caller, event);
+      parent->gameManager->disarmModule();
     break;
     default:
     break;
@@ -168,7 +170,6 @@ void SimonSays::SimonSaysButtonListener::armedAction(Button * caller, ButtonEven
 
         if (parent->count == SIMON_SAYS_LENGTH) {
           parent->setMode(ModuleMode::Disarmed);
-          parent->spiManager->disarmModule();
         }
       } else {
         parent->count2++;
@@ -176,7 +177,7 @@ void SimonSays::SimonSaysButtonListener::armedAction(Button * caller, ButtonEven
     } else {
       parent->count = 0;
       parent->count2 = 0;
-      parent->spiManager->strikeModule();
+      parent->gameManager->strikeModule();
     }
 
   } else if (event == ButtonEvent::RELEASE) {

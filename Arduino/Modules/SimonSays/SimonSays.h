@@ -1,17 +1,18 @@
 #ifndef SIMON_SAYS_H
 #define SIMON_SAYS_H
 
+#include "GameModule.h"
+#include "SPIManager.h"
 #include <Arduino.h>
+#include <Button.h>
+#include <ButtonManager.h>
+#include <GameState.h>
+#include <LFSR.h>
 #include <RGB_LED.h>
 #include <ShiftIn.h>
 #include <ShiftOut.h>
-#include <Button.h>
-#include <ButtonManager.h>
-#include <LFSR.h>
 #include <Timer.h>
-#include <GameState.h>
-#include "GameModule.h"
-#include "SPIManager.h"
+#include <ArduinoGameManager.h>
 
 #define RED_INDEX 0
 #define BLUE_INDEX 1
@@ -24,7 +25,7 @@ class SimonSays : public GameModule {
 
   public:
 
-  SimonSays(ShiftIn * in, ShiftOut * out, RGB_LED * led, ButtonManager * buttons, Timer * t, GameState * game, SPIManager* manager);
+  SimonSays(ShiftIn * in, ShiftOut * out, RGB_LED * led, ButtonManager * buttons, Timer * t, ArduinoGameManager* gameManager);
 
   virtual void init(uint32_t seed);
 
@@ -81,7 +82,7 @@ class SimonSays : public GameModule {
   ButtonManager * buttons;
   Timer * t;
   GameState * game;
-  SPIManager* spiManager;
+  ArduinoGameManager * gameManager;
   lfsr r;
 
   uint8_t colors[SIMON_SAYS_LENGTH];

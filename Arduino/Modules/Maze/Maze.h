@@ -1,22 +1,22 @@
 #ifndef MAZE_H
 #define MAZE_H
 
-#include <Arduino.h>
-#include <GameModule.h>
+#include "MazeBoard.h"
 #include <Adafruit_NeoPixel.h>
+#include <Arduino.h>
+#include <ArduinoGameManager.h>
 #include <ButtonManager.h>
-#include <RGB_LED.h>
-#include <Timer.h>
+#include <GameModule.h>
 #include <GameState.h>
 #include <LFSR.h>
+#include <RGB_LED.h>
 #include <ShiftOut.h>
-#include <SPIManager.h>
-#include "MazeBoard.h"
+#include <Timer.h>
 
 class Maze : public GameModule {
-  public:
-
-  Maze(ShiftOut * out, ButtonManager * buttons, Timer * t, RGB_LED * led, Adafruit_NeoPixel * strip, GameState * game);
+ public:
+  Maze(ShiftOut *out, ButtonManager *buttons, Timer *t, RGB_LED *led,
+       Adafruit_NeoPixel *strip, ArduinoGameManager *gameManager);
 
   virtual void init(uint32_t seed);
 
@@ -26,8 +26,7 @@ class Maze : public GameModule {
 
   virtual void explode();
 
-  private:
-
+ private:
   void updateDisplay(unsigned int cycle);
 
   void setPoint(uint32_t color, uint8_t x, uint8_t y);
@@ -38,41 +37,41 @@ class Maze : public GameModule {
 
   void setMode(ModuleMode mode);
 
-  class MazeButtonListener: public ButtonListener {
-    public:
+  class MazeButtonListener : public ButtonListener {
+   public:
+    MazeButtonListener(Maze *parent);
 
-    MazeButtonListener(Maze * parent);
-    
-    virtual void onEvent(Button * caller, ButtonEvent event);
+    virtual void onEvent(Button *caller, ButtonEvent event);
 
-    private:
-    Maze * parent;
+   private:
+    Maze *parent;
   };
 
-  class MazeTimerListener: public TimerListener {
-    public:
+  class MazeTimerListener : public TimerListener {
+   public:
+    MazeTimerListener(Maze *parent);
 
-    MazeTimerListener(Maze * parent);
+    virtual unsigned int onEvent(Timer *caller, unsigned int id,
+                                 unsigned int calls);
 
-    virtual unsigned int onEvent(Timer *caller, unsigned int id, unsigned int calls);
-    
-    private:
-    Maze * parent;
+   private:
+    Maze *parent;
   };
 
+  ArduinoGameManager *gameManager;
   MazeButtonListener buttonListener;
   MazeTimerListener timerListener;
-  Timer::timer * currentTimer;
+  Timer::timer *currentTimer;
   lfsr r;
   MazeBoard board;
-  GameState * game;
-  ButtonManager * buttons;
-  RGB_LED * led;
-  Timer * t;
-  ShiftOut * out;
-  Adafruit_NeoPixel * strip;
+  GameState *game;
+  ButtonManager *buttons;
+  RGB_LED *led;
+  Timer *t;
+  ShiftOut *out;
+  Adafruit_NeoPixel *strip;
 
   ModuleMode mode;
 };
 
-#endif // MAZE_H
+#endif  // MAZE_H

@@ -10,13 +10,15 @@
 
 #define BLINK_TIME 350
 
-Maze::Maze(ShiftOut * out, ButtonManager * buttons, Timer * t, RGB_LED * led, Adafruit_NeoPixel * strip, GameState * game): buttonListener(this), timerListener(this) {
+Maze::Maze(ShiftOut * out, ButtonManager * buttons, Timer * t, RGB_LED * led, Adafruit_NeoPixel * strip, ArduinoGameManager * gameManager): buttonListener(this), timerListener(this) {
   this->out = out;
   this->buttons = buttons;
   this->t = t;
   this->led = led;
   this->strip = strip;
-  this->game = game;
+  this->gameManager = gameManager;
+  this->gameManager->setGameModule(this);
+  this->game = &gameManager->getGameState();
   this->buttons->attachAllOnPress(&buttonListener);
   this->buttons->attachAllOnRelease(&buttonListener);
   this->t->attachTimer(&timerListener, 0, 0);
@@ -36,7 +38,6 @@ void Maze::init(uint32_t seed) {
     start_y = r.next() & 6;
   }
   board.setGoal(goal_x, goal_y);
-  //board.setGoal(board.getInd1().x, board.getInd1().y);
   board.setPlayer(start_x, start_y);
   /*
   updateDisplay(1);
@@ -126,6 +127,7 @@ void Maze::setMode(ModuleMode mode) {
     break;
     case ModuleMode::Disarmed:
       led->set(0, LED_GREEN);
+      gameManager->disarmModule();
     break;
     case ModuleMode::Demo:
       led->set(0, LED_BLUE);
@@ -150,6 +152,7 @@ void Maze::MazeButtonListener::onEvent(Button * caller, ButtonEvent event) {
           parent->setMode(ModuleMode::Disarmed);
         }
       } else {
+          parent->gameManager->strikeModule();
         //send strike
       }
       parent->updateDisplay(0);

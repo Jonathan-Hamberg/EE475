@@ -21,9 +21,9 @@ ShiftIn in(REG_CLOCK, IN_LOAD_PIN, DATA_IN_PIN, 1);
 RGB_LED led(&out, 4, 0, 6, 0, 7, 0);
 ButtonManager buttons(0, 4, &in);
 Timer t(8);
-GameState game;
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(36, NEO_PIN, NEO_GRB + NEO_KHZ800);
-Maze module(&out, &buttons, &t, &led, &strip, &game);
+ArduinoGameManager gameManager(ModuleType::Mazes);
+Maze module(&out, &buttons, &t, &led, &strip, &gameManager);
 
 
 void setup() {
@@ -43,4 +43,6 @@ void loop() {
   in.load();
   buttons.load();
   t.load();
+
+  gameManager.update();
 }
