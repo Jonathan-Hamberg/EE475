@@ -32,7 +32,7 @@ add_executable(defuser ${SRC})
 # Add custom command to transfer the executable to the raspberry pi.
 add_custom_command(TARGET defuser POST_BUILD
 		COMMAND scp ${CMAKE_BINARY_DIR}/defuser devbox:~/
-        COMMAND rsync -rl Resources devbox:~/
+        COMMAND rsync -rl ${CMAKE_SOURCE_DIR}/Resources devbox:~/
         )
 
 target_link_libraries(defuser asound vorbisfile pthread)

@@ -52,7 +52,7 @@ void GameManager::update() {
 
 void GameManager::updateStateOff() {
     // Send the acknowledge to look for the start bit.
-    moduleManager->updateControlModule(OpCode::Acknowledge, 0);
+    moduleManager->updateControlModule(OpCode::None, 0);
 
     // Check to see if the game is to be started.
     if (moduleManager->controlHasExtraInformation(ExtraInformation::StartGame)) {
@@ -72,15 +72,16 @@ void GameManager::updateStateDemo() {
 
 void GameManager::updateStateArmed() {
     // Update the countdown of the defuser.
-    int16_t currentCountdown = int16_t(std::chrono::duration_cast<std::chrono::seconds>(stopTime - std::chrono::system_clock::now()).count());
+    int16_t currentCountdown = int16_t(
+            std::chrono::duration_cast<std::chrono::seconds>(stopTime - std::chrono::system_clock::now()).count());
+
+    moduleManager->updateModules(OpCode::Countdown, uint16_t(currentCountdown));
 
     std::cout << "currentCountdown: " << currentCountdown << std::endl;
 
     // Update the current countdown for all the modules.
     gameState.setCountdownTime(uint16_t(currentCountdown));
-    if (currentCountdown > 0) {
-        moduleManager->updateModules(OpCode::Countdown, uint16_t(currentCountdown));
-    } else {
+    if (currentCountdown <= 0) {
         onDetonate();
     }
 
@@ -99,32 +100,50 @@ void GameManager::updateStateArmed() {
             onDisarm(kv.first);
         }
     }
-
-    // Acknowledge any status indicators from the modules.
-    moduleManager->updateModules(OpCode::Acknowledge, 0);
 }
 
 void GameManager::updateStateDisarmed() {
     // TODO(jrh) wait for the user to start the game.
+    this->currentMode == ModuleMode::Off;
 }
 
 void GameManager::onStart() {
+    std::cout << "onStart()" << std::endl;
     // Reset the disarm counter.
     disarmCounter = 0;
 
     // Generate the initial game state.
     generateGameState(seed, countdown, maxStrikes);
+    gameState.setGameState(ModuleMode::Armed);
 
     // Query the connected modules.
     moduleManager->queryModules(seed);
 
+    if (!moduleManager->hasControlModule() || moduleManager->getModules().size() < 2) {
+        std::cout << "System must contain control module and have more then one connected game puzzle." << std::endl;
+        return;
+    }
+
+    // TODO(jrh) add back when done debugging.
     // Transfer game state to all the modules.
     moduleManager->transmitGameState(gameState);
+    std::cout << "transmitGameState() begin." << std::endl;
+    std::cout << "\tmaxStrikes: " << int(gameState.getMaxStrikes()) << std::endl;
+    std::cout << "\tcountdown: " << gameState.getCountdownTime() << std::endl;
+    std::cout << "\tindicators: " << gameState.getIndicators() << std::endl;
+    std::cout << "\tports: " << int(gameState.getPorts()) << std::endl;
+    std::cout << "\tbatteries: " << int(gameState.getBatteries()) << std::endl;
+    std::cout << "\tSN: " << gameState.getSN() << std::endl;
+    std::cout << "\tseed: " << gameState.getSeed() << std::endl;
+    std::cout << "transmitGameState() end." << std::endl;
+
+    // Tell the modules to start.
+    moduleManager->updateModules(OpCode::Mode, uint16_t(ModuleMode::Armed));
+
+
 
     // The number of connected modules is the number of total modules minus the control module.
-//    numConnectedModules = uint8_t(moduleManager->getModules().size() - 1);
-// TODO(jrh) add the -1 back to the modules.
-    numConnectedModules = uint8_t(moduleManager->getModules().size());
+    numConnectedModules = uint8_t(moduleManager->getModules().size() - 1);
 
     // Store the start time of the defuser.
     stopTime = std::chrono::system_clock::now() + std::chrono::seconds(countdown);
@@ -134,7 +153,7 @@ void GameManager::onStart() {
 }
 
 void GameManager::onStop() {
-
+    currentMode = ModuleMode::Off;
 }
 
 void GameManager::playSound(PlaySound sound) {
@@ -146,7 +165,7 @@ void GameManager::onStrike(uint8_t address) {
     // Update the console.
     std::cout << "onStrike(" << int(address) << ")..." << std::endl;
 
-        // Update the strikes in the game state.
+    // Update the strikes in the game state.
     this->gameState.setStrikes(uint8_t(this->gameState.getStrikes() + 1u));
 
     // Update all the modules on the new strike.
@@ -160,7 +179,7 @@ void GameManager::onStrike(uint8_t address) {
 
 void GameManager::onDisarm(uint8_t address) {
     // Print debugging message to the console.
-    std::cout << "onDisarm(" << address << ")" << std::endl;
+    std::cout << "onDisarm(" << int(address) << ")" << std::endl;
 
     // Acknowledge disarm.
     moduleManager->updateModule(OpCode::Acknowledge, 0, address);
@@ -181,15 +200,16 @@ void GameManager::onDisarmAll() {
 
 
     // Update all the modules to be disarmed.
-    moduleManager->updateModules(OpCode::Mode, uint16_t(ModuleMode::Disarmed));
-
-    // Update the state of the device.
     currentMode = ModuleMode::Off;
+    moduleManager->updateModules(OpCode::Mode, uint16_t(ModuleMode::Disarmed));
 }
 
 void GameManager::onDetonate() {
     std::cout << "onDetonate()" << std::endl;
+
+
     currentMode = ModuleMode::Off;
+    moduleManager->updateModules(OpCode::Mode, uint16_t(ModuleMode::Off));
 }
 
 

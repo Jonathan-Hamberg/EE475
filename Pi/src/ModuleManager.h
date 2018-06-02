@@ -51,6 +51,8 @@ public:
      */
     uint16_t updateControlModule(OpCode op, uint16_t data);
 
+    bool hasControlModule();
+
     /**
      *
      * @param info

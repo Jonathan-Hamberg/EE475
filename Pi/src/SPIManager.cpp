@@ -2,7 +2,8 @@
 #include "bcm2835.h"
 #include <iostream>
 
-static const uint8_t decoderAddress[4] = {0, 5, 6, 13};
+static const uint8_t decoderAddress[4] = {13, 6, 5, 0};
+
 
 SPIManager::SPIManager() {
 
@@ -30,8 +31,8 @@ SPIManager::SPIManager() {
        BCM2835_SPI_CLOCK_DIVIDER_32 = 7.8125MHz on Rpi2, 12.5MHz on RPI3
        BCM2835_SPI_CLOCK_DIVIDER_16 = 15.625MHz on Rpi2, 25MHz on RPI3
        BCM2835_SPI_CLOCK_DIVIDER_8 = 31.25MHz on Rpi2, 50MHz on RPI3
-       BCM2835_SPI_CLOCK_DIVIDER_4 = 62.5MHz on Rpi2, 100MHz on RPI3. Dont expect this speed to work reliably.
-       BCM2835_SPI_CLOCK_DIVIDER_2 = 125MHz on Rpi2, 200MHz on RPI3, fastest you can get. Dont expect this speed to work reliably.
+       BCM2835_SPI_CLOCK_DIVIDER_4 = 62.5MHz on Rpi2, 100MHz on RPI3. Don't expect this speed to work reliably.
+       BCM2835_SPI_CLOCK_DIVIDER_2 = 125MHz on Rpi2, 200MHz on RPI3, fastest you can get. Don't expect this speed to work reliably.
        BCM2835_SPI_CLOCK_DIVIDER_1 = 3.814697260kHz on Rpi2, 6.1035156kHz on RPI3, same as 0/65536
     */
     bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_1024);
@@ -85,6 +86,7 @@ void SPIManager::selectCS(uint8_t address) {
 }
 
 void SPIManager::transfer(uint8_t *buffer, uint32_t size) {
+
     // Transfer the data to the module.
     bcm2835_spi_transfern((char *) buffer, size);
 

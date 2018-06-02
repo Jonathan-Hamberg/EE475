@@ -1,1 +1,5 @@
 build
+Pi/.idea/
+Pi/cmake-build-debug
+Pi/cmake-build-release
+Pi/toolchain

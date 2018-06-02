@@ -47,9 +47,12 @@ if [ $CROSS ] ; then
         # Copy over the required include files.
         rsync -rl devbox:/usr/include/alsa toolchain/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/arm-linux-gnueabihf/sysroot/usr/include/
         rsync -rl devbox:/usr/include/vorbis toolchain/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/arm-linux-gnueabihf/sysroot/usr/include/
+        rsync -rl devbox:/usr/include/ogg toolchain/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/arm-linux-gnueabihf/sysroot/usr/include/
         # Copy over the required lib files.
         rsync -rl devbox:/usr/lib/arm-linux-gnueabihf/libasound.so\* toolchain/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/arm-linux-gnueabihf/sysroot/usr/lib/
         rsync -rl devbox:/usr/lib/arm-linux-gnueabihf/libvorbisfile.so\* toolchain/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/arm-linux-gnueabihf/sysroot/usr/lib/
+        rsync -rl devbox:/usr/lib/arm-linux-gnueabihf/libvorbis.so\* toolchain/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/arm-linux-gnueabihf/sysroot/usr/lib/
+        rsync -rl devbox:/usr/lib/arm-linux-gnueabihf/libogg.so\* toolchain/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/arm-linux-gnueabihf/sysroot/usr/lib/
     fi
 
     GENERATOR="$GENERATOR $CROSS_ARGS"

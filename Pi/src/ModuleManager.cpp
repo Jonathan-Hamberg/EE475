@@ -28,6 +28,7 @@ ModuleManager::ModuleManager(SPIManager *manager) {
 void ModuleManager::queryModules(uint16_t seed) {
     // Clear the module map when querying new modules.
     moduleMap.clear();
+    controllAddress = 0xFF;
 
     // Variables used to transmit and receive information from the modules.
     uint8_t buffer[3];
@@ -59,8 +60,6 @@ void ModuleManager::queryModules(uint16_t seed) {
 
         // If the module has been found then add it to the module map.
         if (hasModule) {
-
-
             GameState myModule;
 
             // Store the module seed.
@@ -75,10 +74,10 @@ void ModuleManager::queryModules(uint16_t seed) {
     }
 
     // Iterate through all the discovered modules on the SPI bus.
-    for(const auto& kv : moduleMap) {
+    for (const auto &kv : moduleMap) {
 
         // Determine if the control module is part of the connected modules.
-        if(kv.second.getModuleType() == ModuleType::Control) {
+        if (kv.second.getModuleType() == ModuleType::Control) {
             this->controllAddress = kv.first;
             foundControlModule = true;
         }
@@ -98,10 +97,7 @@ void ModuleManager::queryModules(uint16_t seed) {
 
 void ModuleManager::updateModules(OpCode opCode, uint16_t data) {
 
-    uint8_t buffer[3];
-    buffer[0] = uint8_t(opCode);
-    buffer[1] = uint8_t(data);
-    buffer[2] = uint8_t(data >> 8u);
+
 
     // Transmit through every connected module.
     for (auto &module : moduleMap) {
@@ -110,6 +106,11 @@ void ModuleManager::updateModules(OpCode opCode, uint16_t data) {
 
         // Update the state of the module in the module map.
         module.second.setField(opCode, data);
+
+        uint8_t buffer[3];
+        buffer[0] = uint8_t(opCode);
+        buffer[1] = uint8_t(data);
+        buffer[2] = uint8_t(data >> 8u);
 
         // Transmit the data.
         spiManager->transfer(buffer, 3);
@@ -160,27 +161,35 @@ PlaySound ModuleManager::getPlaySound(uint8_t address) {
 void ModuleManager::transmitGameState(const GameState &state) {
 
     uint8_t buffer[3];
-    uint8_t *address = buffer;
-    auto data = (uint16_t *) (buffer + 1);
 
     // Transmit game state to all modules.
-    updateModules(OpCode::Mode, uint16_t(state.getGameState()));
     updateModules(OpCode::Countdown, state.getCountdownTime());
     updateModules(OpCode::MaxStrike, state.getMaxStrikes());
     updateModules(OpCode::Indicators, state.getIndicators());
     updateModules(OpCode::Ports, state.getPorts());
     updateModules(OpCode::Battery, state.getBatteries());
 
+    const char *sn = state.getSN();
+    updateModules(OpCode::Serial, 0);
+    updateModules(OpCode::Serial, uint16_t(sn[0]) | (uint16_t(sn[1]) << 8u));
+    updateModules(OpCode::Serial, uint16_t(sn[2]) | (uint16_t(sn[3]) << 8u));
+    updateModules(OpCode::Serial, uint16_t(sn[4]) | (uint16_t(sn[5]) << 8u));
+
     // Transmit seeds to each of the individual modules.
     for (const auto &module : moduleMap) {
+
         // Set the chip select line to send the data.
         spiManager->selectCS(module.first);
 
         // Transmit the module seed.
-        *address = uint8_t(OpCode::Seed);
-        *data = module.second.getSeed();
+        buffer[0] = uint8_t(OpCode::Seed);
+        buffer[1] = uint8_t(module.second.getSeed());
+        buffer[2] = uint8_t(module.second.getSeed() >> 8u);
+
         spiManager->transfer(buffer, 3);
     }
+
+    updateModules(OpCode::Mode, uint16_t(state.getGameState()));
 }
 
 const std::map<uint8_t, GameState> &ModuleManager::getModules() const {
@@ -193,4 +202,8 @@ bool ModuleManager::hasExtraInformation(uint8_t address, ExtraInformation info) 
 
 bool ModuleManager::controlHasExtraInformation(ExtraInformation info) {
     return hasExtraInformation(this->controllAddress, info);
+}
+
+bool ModuleManager::hasControlModule() {
+    return controllAddress < 13;
 }
