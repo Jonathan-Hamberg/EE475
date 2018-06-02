@@ -18,6 +18,11 @@ SPIManager::SPIManager(GameState* gameState) {
 
   // Store a reference to the game state.
   this->gameState = gameState;
+  this->transmitByte = 0;
+  this->receiveByte = 0;
+  this->moduleType = ModuleType::None;
+  this->sound = PlaySound::NoSound;
+  this->lastByteTransaction = 0;
 }
 
 uint8_t SPIManager::dataISR(uint8_t data) {
@@ -35,8 +40,8 @@ uint8_t SPIManager::dataISR(uint8_t data) {
   switch (state) {
     case MessageState::Address:
       // Calculate the receive and transmit op codes.
-      transmitOpCode = OpCode(data & 0x0F);
-      receiveOpCode = OpCode(data >> 4);
+      transmitOpCode = OpCode(data & 0x0Fu);
+      receiveOpCode = OpCode(data >> 4u);
 
       // Logic for handling the receive op code.
       switch (receiveOpCode) {
@@ -74,7 +79,8 @@ uint8_t SPIManager::dataISR(uint8_t data) {
     case MessageState::Transmit2:
 
       // Apply the message that has just been transmitted.
-      gameState->setField(transmitOpCode, receiveByte | (data << 8));
+      gameState->setField(transmitOpCode, uint16_t(receiveByte) |
+                                              uint16_t(uint16_t(data) << 8u));
 
       nextByte = transmitAddress;
       break;
@@ -104,51 +110,53 @@ uint8_t SPIManager::dataISR(uint8_t data) {
   return nextByte;
 }
 
-void SPIManager::setModuleType(ModuleType type) { moduleType = type; }
+void SPIManager::setModuleType(ModuleType type) {
+  moduleType = type;
+}
 
 void SPIManager::playSound(PlaySound sound) {
   this->sound = sound;
   // Add PlaySound flag to extra information to be send to the host system.
-  transmitAddress |= 1 << uint8_t(ExtraInformation::PlaySound);
+  transmitAddress |= 1u << uint8_t(ExtraInformation::PlaySound);
 
   // If the message is not curretly transmitting set the tranmit address.
-  if (state == MessageState::Address && !(SPSR & (1 << SPIF))) {
+  if (state == MessageState::Address) {
     SPDR = transmitAddress;
   }
 }
 
 void SPIManager::strikeModule() {
-  transmitAddress |= 1 << uint8_t(ExtraInformation::Strike);
+  transmitAddress |= 1u << uint8_t(ExtraInformation::Strike);
 
   // If the message is not curretly transmitting set the tranmit address.
-  if (state == MessageState::Address && !(SPSR & (1 << SPIF))) {
+  if (state == MessageState::Address) {
     SPDR = transmitAddress;
   }
 }
 
 void SPIManager::disarmModule() {
-  transmitAddress |= 1 << uint8_t(ExtraInformation::Disarm);
+  transmitAddress |= 1u << uint8_t(ExtraInformation::Disarm);
 
   // If the message is not curretly transmitting set the tranmit address.
-  if (state == MessageState::Address && !(SPSR & (1 << SPIF))) {
+  if (state == MessageState::Address) {
     SPDR = transmitAddress;
   }
 }
 
 void SPIManager::startGame() {
-  transmitAddress |= 1 << uint8_t(ExtraInformation::StartGame);
+  transmitAddress |= 1u << uint8_t(ExtraInformation::StartGame);
 
   // If the message is not curretly transmitting set the tranmit address.
-  if (state == MessageState::Address && !(SPSR & (1 << SPIF))) {
+  if (state == MessageState::Address) {
     SPDR = transmitAddress;
   }
 }
 
 void SPIManager::stopGame() {
-  transmitAddress |= 1 << uint8_t(ExtraInformation::StopGame);
+  transmitAddress |= 1u << uint8_t(ExtraInformation::StopGame);
 
   // If the message is not curretly transmitting set the tranmit address.
-  if (state == MessageState::Address && !(SPSR & (1 << SPIF))) {
+  if (state == MessageState::Address) {
     SPDR = transmitAddress;
   }
 }

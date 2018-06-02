@@ -1,16 +1,21 @@
-#include <Arduino.h>
 #include "HorizontalWire.h"
+#include <Arduino.h>
 
-HorizontalWire::HorizontalWire(ShiftIn * in, ShiftOut * out, RGB_LED * led, ButtonManager * buttons, GameState * game) : buttonListener(this) {
+HorizontalWire::HorizontalWire(ShiftIn *in, ShiftOut *out, RGB_LED *led,
+                               ButtonManager *buttons,
+                               ArduinoGameManager *gameManager)
+    : buttonListener(this) {
   this->in = in;
   this->out = out;
   this->led = led;
   this->buttons = buttons;
-  this->game = game;
+  this->gameManager = gameManager;
+  this->gameManager->setGameModule(this);
+  this->game = &gameManager->getGameState();
 
   init(r.next());
   muteOutput();
-  setMode(MODULE_OFF);
+  setMode(ModuleMode::Off);
   buttons->attachAllOnPress(&buttonListener);
   buttons->attachAllOnRelease(&buttonListener);
   numWires = 0;
@@ -24,19 +29,19 @@ void HorizontalWire::init(uint32_t seed) {
     switch (color) {
       case 0:
         color = LED_BLACK;
-      break;
+        break;
       case 1:
         color = LED_RED;
-      break;
+        break;
       case 2:
         color = LED_BLUE;
-      break;
+        break;
       case 3:
         color = LED_YELLOW;
-      break;
+        break;
       case 4:
         color = LED_WHITE;
-      break;
+        break;
     }
     colors[i] = color;
   }
@@ -47,9 +52,9 @@ void HorizontalWire::start() {
   Serial.print("Starting with numWires = ");
   Serial.println(numWires);
   if (numWires >= 3) {
-    setMode(MODULE_ARMED);
+    setMode(ModuleMode::Armed);
   } else {
-    setMode(MODULE_DISARMED);
+    setMode(ModuleMode::Disarmed);
   }
   updateColors();
   findTarget();
@@ -57,34 +62,31 @@ void HorizontalWire::start() {
 
 void HorizontalWire::demo() {
   updateIO();
-  setMode(MODULE_DEMO);
+  setMode(ModuleMode::Demo);
   updateColors();
 }
 
 void HorizontalWire::explode() {
   muteOutput();
-  setMode(MODULE_OFF);
+  setMode(ModuleMode::Off);
 }
 
-HorizontalWire::~HorizontalWire() {
-  
-}
-
-void HorizontalWire::setMode(uint8_t mode) {
+void HorizontalWire::setMode(ModuleMode mode) {
   this->mode = mode;
   switch (mode) {
-    case MODULE_ARMED:
+    case ModuleMode::Armed:
       Serial.println("Arming");
       led->set(6, LED_RED);
-    break;
-    case MODULE_DISARMED:
+      break;
+    case ModuleMode::Disarmed:
       Serial.println("Disarming");
       led->set(6, LED_GREEN);
-    break;
-    case MODULE_DEMO:
+      gameManager->disarmModule();
+      break;
+    case ModuleMode::Demo:
       Serial.println("Entering Demo");
       led->set(6, LED_BLUE);
-    break;
+      break;
     default:
       led->set(6, LED_BLACK);
   }
@@ -92,35 +94,33 @@ void HorizontalWire::setMode(uint8_t mode) {
 }
 
 void HorizontalWire::muteOutput() {
-  for (unsigned int i = 0; i < 7; i++) {
-    led->set(i, LED_BLACK);
-  }
+  for (unsigned int i = 0; i < 7; i++) { led->set(i, LED_BLACK); }
 }
 
 void HorizontalWire::updateColors() {
   switch (mode) {
-    case MODULE_OFF:
+    case ModuleMode::Off:
       muteOutput();
-    break;
-    case MODULE_DEMO:
+      break;
+    case ModuleMode::Demo:
       for (unsigned int i = 0; i < HORIZONTAL_WIRE_LENGTH; i++) {
         led->set(i, LED_BLACK);
       }
       for (unsigned int i = 0; i < numWires; i++) {
         led->set(wireIndex[i], LED_GREEN);
       }
-    break;
-    case MODULE_ARMED:
+      break;
+    case ModuleMode::Armed:
       for (unsigned int i = 0; i < HORIZONTAL_WIRE_LENGTH; i++) {
         led->set(i, LED_BLACK);
-        //led->set(i, colors[i]);
+        // led->set(i, colors[i]);
       }
       for (unsigned int i = 0; i < numWires; i++) {
         uint8_t index = wireMap[wireIndex[i]];
         led->set(index, colors[index]);
       }
-    break;
-    case MODULE_DISARMED:
+      break;
+    case ModuleMode::Disarmed:
       for (unsigned int i = 0; i < HORIZONTAL_WIRE_LENGTH; i++) {
         led->set(i, LED_BLACK);
       }
@@ -128,7 +128,7 @@ void HorizontalWire::updateColors() {
         uint8_t index = wireMap[wireIndex[i]];
         led->set(index, colors[index]);
       }
-    break;
+      break;
     default:
       muteOutput();
   }
@@ -148,9 +148,7 @@ void HorizontalWire::updateIO() {
       out->set(j + HORIZONTAL_WIRE_INDEX_OFFSET, 0, 0);
       out->load();
       in->load();
-      if(in->getBit(i)) {
-        wireMap[i] = (uint8_t) j;
-      }
+      if (in->getBit(i)) { wireMap[i] = (uint8_t)j; }
       out->set(j + HORIZONTAL_WIRE_INDEX_OFFSET, 0, 1);
       out->load();
     }
@@ -194,12 +192,12 @@ void HorizontalWire::findTarget() {
       } else if (colors[wireMap[wireIndex[2]]] == LED_WHITE) {
         target = 2;
       } else if (numBlue > 1) {
-        target = lastBlue; 
+        target = lastBlue;
       } else {
         target = 2;
       }
-    break;
-    
+      break;
+
     case 4:
       for (unsigned int i = 0; i < 4; i++) {
         uint8_t color = colors[wireMap[wireIndex[i]]];
@@ -223,8 +221,8 @@ void HorizontalWire::findTarget() {
       } else {
         target = 1;
       }
-    break;
-    
+      break;
+
     case 5:
       for (unsigned int i = 0; i < 5; i++) {
         uint8_t color = colors[wireMap[wireIndex[i]]];
@@ -245,8 +243,8 @@ void HorizontalWire::findTarget() {
       } else {
         target = 0;
       }
-    break;
-    
+      break;
+
     case 6:
       for (unsigned int i = 0; i < 6; i++) {
         uint8_t color = colors[wireMap[wireIndex[i]]];
@@ -267,31 +265,35 @@ void HorizontalWire::findTarget() {
       } else {
         target = 3;
       }
-    break;
-    default: break;
+      break;
+    default:
+      break;
   }
 }
 
-HorizontalWire::HorizontalWireButtonListener::HorizontalWireButtonListener(HorizontalWire *parent) {
+HorizontalWire::HorizontalWireButtonListener::HorizontalWireButtonListener(
+    HorizontalWire *parent) {
   this->parent = parent;
 }
 
-void HorizontalWire::HorizontalWireButtonListener::onEvent(Button * caller, ButtonEvent event) {
-  if (this->parent->mode == MODULE_DEMO) {
+void HorizontalWire::HorizontalWireButtonListener::onEvent(Button *caller,
+                                                           ButtonEvent event) {
+  if (this->parent->mode == ModuleMode::Demo) {
     Serial.println("Demo Event");
     if (event == ButtonEvent::PRESS) {
       parent->led->set(caller->getID(), LED_GREEN);
     } else {
       parent->led->set(caller->getID(), LED_BLACK);
     }
-  } else if (this->parent->mode == MODULE_ARMED && event == ButtonEvent::RELEASE) {
+  } else if (this->parent->mode == ModuleMode::Armed &&
+             event == ButtonEvent::RELEASE) {
     Serial.println("Game Event");
     if (caller->getID() == parent->wireIndex[parent->target]) {
-      parent->setMode(MODULE_DISARMED);
+      parent->setMode(ModuleMode::Disarmed);
       // send disarmed
     } else {
       // send strike
+      parent->gameManager->strikeModule();
     }
   }
 }
-

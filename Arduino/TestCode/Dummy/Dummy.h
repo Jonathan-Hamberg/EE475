@@ -1,15 +1,14 @@
 #ifndef THE_BUTTON_H
 #define THE_BUTTON_H
 
-#include <GameState.h>
-#include <GameModule.h>
 #include <ButtonManager.h>
+#include <GameModule.h>
+#include <GameState.h>
 #include <Timer.h>
 
 class Dummy : public GameModule {
-  public:
-
-  Dummy(GameState * game);
+ public:
+  Dummy(GameState *game);
 
   virtual void init(uint32_t seed);
 
@@ -19,10 +18,9 @@ class Dummy : public GameModule {
 
   virtual void explode();
 
-  virtual ~Dummy();
-  
-  private:
+  virtual ~Dummy() = default;
 
+ private:
   void muteOutput();
 
   void setMode(uint8_t mode);
@@ -32,29 +30,28 @@ class Dummy : public GameModule {
   bool quickPress();
 
   class DummyButtonListener : public ButtonListener {
-    public:
+   public:
+    DummyButtonListener(Dummy *parent);
 
-    DummyButtonListener(Dummy * parent);
+    virtual void onEvent(Button *caller, ButtonEvent event);
 
-    virtual void onEvent(Button * caller, ButtonEvent event);
-    
-    private:
-    Dummy * parent;
+   private:
+    Dummy *parent;
   };
 
   class DummyTimerListener : public TimerListener {
-    public:
+   public:
+    DummyTimerListener(Dummy *parent);
 
-    DummyTimerListener(Dummy * parent);
+    virtual unsigned int onEvent(Timer *caller, unsigned int id,
+                                 unsigned int calls);
 
-    virtual unsigned int onEvent(Timer *caller, unsigned int id, unsigned int calls);
-    
-    private:
-    Dummy * parent;
+   private:
+    Dummy *parent;
   };
 
   DummyButtonListener buttonListener;
   DummyTimerListener timerListener;
 };
 
-#endif // THE_BUTTON_H
+#endif  // THE_BUTTON_H

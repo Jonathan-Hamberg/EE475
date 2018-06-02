@@ -98,7 +98,10 @@ ModuleType GameState::getModuleType() const {
 
 void GameState::setSN(uint16_t digits) {
   // If digits are 0 then reset the serial number.
-  if (digits == 0) { sn[0] = '\0'; }
+  if (digits == 0) {
+    sn[0] = '\0';
+    return;
+  }
 
   // Get the length of the serial number.
   uint8_t length = strlen(sn);
@@ -108,8 +111,8 @@ void GameState::setSN(uint16_t digits) {
   if (length <= 4) {
     // If digits are non-zero then append the two bytes to the serial number
     // if there is space to spare.
-    char byte1 = char(digits);
-    char byte2 = char(digits >> 8);
+    auto byte1 = char(digits);
+    auto byte2 = char(digits >> 8u);
 
     sn[length + 0] = byte1;
     sn[length + 1] = byte2;
@@ -142,7 +145,7 @@ void GameState::setPorts(uint8_t ports) {
   this->ports = ports;
 }
 
-void GameState::setBat(uint8_t bat) {
+void GameState::setBattteries(uint8_t bat) {
   this->bat = bat;
 }
 
@@ -238,6 +241,7 @@ void GameState::setField(OpCode op, uint16_t data) {
   switch (op) {
     case OpCode::Mode:
       this->gameState = ModuleMode(data);
+      modeChanged = true;
       break;
     case OpCode::MaxStrike:
       this->maxStrikes = uint8_t(data);
@@ -257,8 +261,11 @@ void GameState::setField(OpCode op, uint16_t data) {
     case OpCode::Battery:
       this->bat = uint8_t(data);
       break;
-    case ::OpCode::ModuleType:
+    case OpCode::ModuleType:
       this->moduleType = ModuleType(data);
+      break;
+    case OpCode::Serial:
+      this->setSN(data);
       break;
     default:
       break;
@@ -337,18 +344,22 @@ bool GameState::timeHasDigit(uint8_t digit) {
   uint16_t m = this->countdownTime / 60;
   uint16_t s = this->countdownTime % 60;
   do {
-    if (m % 10 == digit) { return true; }
+    if (m % 10 == digit) {
+      return true;
+    }
     m /= 10;
   } while (m > 0);
   do {
-    if (s % 10 == digit) { return true; }
+    if (s % 10 == digit) {
+      return true;
+    }
     s /= 10;
   } while (s > 0);
   return false;
 }
 
 bool GameState::SNisEven() {
-  return !((this->sn[5] - '0') & 1);
+    return (uint8_t(this->sn[5] - '0') & 1u) == 0;
 }
 
 bool GameState::SNhasVowel() {

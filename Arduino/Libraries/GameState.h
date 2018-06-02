@@ -62,7 +62,7 @@ class GameState final {
   void setGameState(ModuleMode gameState);
   void setIndicators(uint16_t indicators);
   void setPorts(uint8_t ports);
-  void setBat(uint8_t bat);
+  void setBattteries(uint8_t bat);
   void setSeed(uint16_t seed);
   void setSN(uint16_t digits);
   void setModuleType(ModuleType moduleType);

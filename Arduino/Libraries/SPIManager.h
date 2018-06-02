@@ -5,72 +5,93 @@
 #include <GameState.h>
 
 enum class MessageState : uint8_t {
-    Address = 0,
-    Transmit1,
-    Transmit2,
+  Address = 0,
+  Transmit1,
+  Transmit2,
 };
 
 /**
  *
  */
 class SPIManager final {
-public:
+ public:
+  SPIManager() = delete;
 
-    SPIManager() = delete;
+  /**
+   *
+   */
+  SPIManager(GameState* gameState);
 
-    /**
-     *
-     */
-    SPIManager(GameState* gameState);
+  /**
+   *
+   *
+   * @param data
+   *
+   * @return
+   */
+  uint8_t dataISR(uint8_t data);
 
-    /**
-     *
-     *
-     * @param data
-     *
-     * @return
-     */
-    uint8_t dataISR(uint8_t data);
+  /**
+   * 
+   *
+   * @param type
+   */
+  void setModuleType(ModuleType type);
 
-    void setModuleType(ModuleType type);
+  /**
+   *  
+   *
+   * @param sound
+   */
+  void playSound(PlaySound sound);
 
-    void playSound(PlaySound sound);
+  /**
+   *  
+   */
+  void strikeModule();
 
-    void strikeModule();
+  /**
+   *  
+   */
+  void disarmModule();
 
-    void disarmModule();
+  /**
+   *  
+   */
+  void startGame();
 
-    void startGame();
+  /**
+   *
+   */
+  void stopGame();
 
-    void stopGame();
-private:
-    
-    ///
-    volatile MessageState state = MessageState::Address;
+ /* private: */
+  ///
+  volatile MessageState state = MessageState::Address;
 
-    ///
-    GameState* gameState;
+  ///
+  GameState* gameState;
 
-    ///
-    uint8_t transmitByte;
+  ///
+  uint8_t transmitByte;
 
-    ///
-    uint8_t receiveByte;
+  ///
+  uint8_t receiveByte;
 
-    ///
-    OpCode transmitOpCode = OpCode::None;
+  ///
+  OpCode transmitOpCode = OpCode::None;
 
-    ///
-    OpCode receiveOpCode = OpCode::None;
+  ///
+  OpCode receiveOpCode = OpCode::None;
 
-    /// T
-    volatile uint8_t transmitAddress = 0;
+  /// T
+  volatile uint8_t transmitAddress = 0;
 
-    uint32_t lastByteTransaction;
+  uint32_t lastByteTransaction;
 
-    ModuleType moduleType;
+  volatile ModuleType moduleType;
 
-    PlaySound sound;
+  PlaySound sound;
 };
 
-#endif // SPI_MANAGER_H
+#endif  // SPI_MANAGER_H

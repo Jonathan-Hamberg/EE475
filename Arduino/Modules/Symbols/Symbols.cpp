@@ -21,8 +21,7 @@ Symbols::Symbols(ShiftOut *out, ShiftIn *in, Adafruit_SSD1306 *tft,
   this->gameManager = gameManager;
   this->gameManager->setGameModule(this);
   this->buttons->attachAllOnPress(&buttonListener);
-  this->buttons->attachAllOnRelease(&buttonListener);
-  t->attachTimer(&timerListener, 1500);
+  t->attachTimer(&timerListener, 0);
 }
 
 void Symbols::init(uint32_t seed) {

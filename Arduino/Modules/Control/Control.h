@@ -10,7 +10,6 @@
 #include <GameState.h>
 #include <LFSR.h>
 #include <LiquidCrystal_I2C.h>
-#include <RGB_LED.h>
 #include <ShiftIn.h>
 #include <ShiftOut.h>
 #include <Timer.h>
@@ -32,9 +31,8 @@
  */
 class Control : public GameModule {
  public:
-  Control(ShiftIn *in, ShiftOut *out, RGB_LED *led, ButtonManager *buttons,
-          Timer *t, ArduinoGameManager *gameManager, LiquidCrystal_I2C *lcd,
-          Adafruit_7segment *ssd);
+  Control(Timer *t, ArduinoGameManager *gameManager, LiquidCrystal_I2C *lcd,
+          Adafruit_7segment *ssd, Button *startButton, Button *stopButton);
 
   virtual void init(uint32_t seed);
 
@@ -44,7 +42,7 @@ class Control : public GameModule {
 
   virtual void explode();
 
-  virtual ~Control();
+  virtual ~Control() = default;
 
  private:
   /**
@@ -81,10 +79,6 @@ class Control : public GameModule {
   ControlButtonListener buttonListener;
   ControlTimerListener timerListener;
 
-  ShiftIn *in;
-  ShiftOut *out;
-  RGB_LED *led;
-  ButtonManager *buttons;
   ArduinoGameManager *gameManager;
   GameState *gameState;
   Timer *t;
@@ -101,6 +95,7 @@ class Control : public GameModule {
   uint8_t portRows;
 
   ModuleMode mode;
+  bool updateText;
 };
 
 #endif  // CONTROL_H

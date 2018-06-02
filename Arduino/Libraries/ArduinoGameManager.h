@@ -8,13 +8,13 @@
 
 class ArduinoGameManager final {
  private:
-  SPIManager spiManager;
+  SPIManager* spiManager;
   GameModule* gameModule;
   GameState gameState;
   ModuleMode previousMode;
 
  public:
-  ArduinoGameManager();
+  ArduinoGameManager(ModuleType type);
 
   /**
    * The update method is used to determine if the state needs to be changed for

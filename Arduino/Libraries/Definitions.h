@@ -19,6 +19,7 @@ enum class OpCode : uint8_t {
     ModuleType, // Transmit or receive module type.
     PlaySound, // Receive play sound request.
     Acknowledge, // Receive acknowledgment of the strike.
+    Serial, // Receive the module SN.
 };
 
 enum class ExtraInformation : uint8_t {
@@ -50,9 +51,10 @@ enum class ModuleType : uint8_t {
     Knobs,
     Control,
     Symbols,
+    EnumeSize,
 };
 
-
+extern const char* ModuleText[];
 
 /**
  *
@@ -61,7 +63,7 @@ enum class ModuleMode : uint8_t {
     Off = 0,
     Demo,
     Armed,
-    Disarmed
+    Disarmed,
 };
 
 /**
@@ -79,7 +81,10 @@ enum class GameIndicator : uint8_t {
     Trn,
     Bob,
     Frk,
+    EnumSize,
 };
+
+extern const char* GameIndicatorText[];
 
 /**
  *
@@ -91,7 +96,10 @@ enum class GamePort : uint8_t {
     Rj45,
     Serial,
     Rca,
+    EnumSize,
 };
+
+extern const char* GamePortText[];
 
 /**
  *

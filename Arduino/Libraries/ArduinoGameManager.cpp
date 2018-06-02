@@ -1,7 +1,14 @@
 #include "ArduinoGameManager.h"
+#include <Arduino.h>
 
-ArduinoGameManager::ArduinoGameManager() : spiManager(&gameState) {
+ArduinoGameManager::ArduinoGameManager(ModuleType type) {
+  this->spiManager = new SPIManager(&gameState);
   this->gameModule = nullptr;
+  // Set the module type.
+  this->spiManager->setModuleType(type);
+  // Set the mode of the module.
+  previousMode = ModuleMode::Off;
+  this->gameState.setGameState(ModuleMode::Demo);
 }
 
 GameState& ArduinoGameManager::getGameState() {
@@ -14,18 +21,21 @@ void ArduinoGameManager::setGameModule(GameModule* gameModule) {
 
 void ArduinoGameManager::ArduinoGameManager::update() {
   // If the state changed then call the appropriate GameModule method.
-  if (gameState.hasModeChanged() && gameState.getGameState() != previousMode) {}
+  if (!gameState.hasModeChanged() || gameState.getGameState() == previousMode) {
+    return;
+  }
+  previousMode = gameState.getGameState();
 
   // Determine if the game module has actually been set.
-  if(gameModule == nullptr) {
-      return;
+  if (gameModule == nullptr) {
+    return;
   }
 
   // Determine what to do to the game module if a new state is sent.
   switch (gameState.getGameState()) {
     case ModuleMode::Off:
       // Put the game module in demo mode.
-          gameModule->demo();
+      gameModule->explode();
       break;
     case ModuleMode::Demo:
       // Put the game module in demo mode.
@@ -40,32 +50,29 @@ void ArduinoGameManager::ArduinoGameManager::update() {
     case ModuleMode::Disarmed:
       // Don't do anything if the module is disarmed.
       break;
-    case ModuleMode::Explode:
-      gameModule->explode();
-      break;
   };
 }
 
 void ArduinoGameManager::setModuleType(ModuleType type) {
-  spiManager.setModuleType(type);
+  spiManager->setModuleType(type);
 }
 
 void ArduinoGameManager::playSound(PlaySound sound) {
-  spiManager.playSound(sound);
+  spiManager->playSound(sound);
 }
 
 void ArduinoGameManager::strikeModule() {
-  spiManager.strikeModule();
+  spiManager->strikeModule();
 }
 
 void ArduinoGameManager::disarmModule() {
-  spiManager.disarmModule();
+  spiManager->disarmModule();
 }
 
 void ArduinoGameManager::startGame() {
-  spiManager.disarmModule();
+  spiManager->startGame();
 }
 
 void ArduinoGameManager::stopGame() {
-  spiManager.stopGame();
+  spiManager->stopGame();
 }
