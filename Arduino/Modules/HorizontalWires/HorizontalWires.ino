@@ -34,7 +34,7 @@ void loop() {
   in.load();
 
   // Only update the buttons every four loops to debounce the input.
-  if (loadCounter % 4 == 0) {
+  if (loadCounter % 48 == 0) {
     buttons.load();
   }
 

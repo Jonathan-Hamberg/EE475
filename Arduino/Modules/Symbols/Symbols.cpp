@@ -22,7 +22,7 @@ Symbols::Symbols(ShiftOut *out, ShiftIn *in, Adafruit_SSD1306 *tft,
   this->gameManager->setGameModule(this);
   this->buttons->attachAllOnPress(&buttonListener);
   this->buttons->attachAllOnRelease(&buttonListener);
-  t->attachTimer(&timerListener, 0);
+  this->t->attachTimer(&timerListener, 0);
 }
 
 void Symbols::init(uint32_t seed) {
@@ -155,6 +155,8 @@ void Symbols::setMode(ModuleMode mode) {
     case ModuleMode::Demo:
       led->set(0, LED_BLUE);
       break;
+    case ModuleMode::Off:
+      led->set(0, LED_BLACK);
     default:
       break;
   }

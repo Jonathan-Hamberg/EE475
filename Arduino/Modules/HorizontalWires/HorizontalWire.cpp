@@ -58,6 +58,7 @@ void HorizontalWire::start() {
   }
   updateColors();
   findTarget();
+  removedWires = 0x00;
 }
 
 void HorizontalWire::demo() {
@@ -94,7 +95,9 @@ void HorizontalWire::setMode(ModuleMode mode) {
 }
 
 void HorizontalWire::muteOutput() {
-  for (unsigned int i = 0; i < 7; i++) { led->set(i, LED_BLACK); }
+  for (unsigned int i = 0; i < 7; i++) {
+    led->set(i, LED_BLACK);
+  }
 }
 
 void HorizontalWire::updateColors() {
@@ -148,7 +151,9 @@ void HorizontalWire::updateIO() {
       out->set(j + HORIZONTAL_WIRE_INDEX_OFFSET, 0, 0);
       out->load();
       in->load();
-      if (in->getBit(i)) { wireMap[i] = (uint8_t)j; }
+      if (in->getBit(i)) {
+        wireMap[i] = (uint8_t)j;
+      }
       out->set(j + HORIZONTAL_WIRE_INDEX_OFFSET, 0, 1);
       out->load();
     }
@@ -290,10 +295,16 @@ void HorizontalWire::HorizontalWireButtonListener::onEvent(Button *caller,
     Serial.println("Game Event");
     if (caller->getID() == parent->wireIndex[parent->target]) {
       parent->setMode(ModuleMode::Disarmed);
-      // send disarmed
     } else {
-      // send strike
-      parent->gameManager->strikeModule();
+        // Only strike if the wire hasn't been removed already.
+        if(((~parent->removedWires) & (1 << caller->getID())) != 0) {
+
+        // Remember which wires have been removed.
+        parent->removedWires |= 1 << caller->getID();
+
+        // send strike
+        parent->gameManager->strikeModule();
+      }
     }
   }
 }

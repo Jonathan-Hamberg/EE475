@@ -12,14 +12,13 @@ Control::Control(Timer* t, ArduinoGameManager* gameManager,
   this->gameManager = gameManager;
   this->gameManager->setGameModule(this);
   this->gameState = &gameManager->getGameState();
-  this->updateText = true;
+  this->updateText = false;
 
   startButton->attachOnPress(&buttonListener);
   stopButton->attachOnPress(&buttonListener);
 }
 
 void Control::init(uint32_t /*seed*/) {
-  muteOutput();
   setMode(ModuleMode::Off);
 
   // Initialize the timer object.
@@ -100,26 +99,25 @@ void Control::init(uint32_t /*seed*/) {
   portRows++;
   indicatorRows++;
 
-      // Clear the seven segment display text.
-      ssd->writeDigitNum(0, 0);
-      ssd->writeDigitNum(1, 0);
-      ssd->writeDigitNum(3, 0);
-      ssd->writeDigitNum(4, 0);
-      ssd->writeColon();
-      ssd->writeDisplay();
+  // Clear the seven segment display text.
+  ssd->writeDigitNum(0, 0);
+  ssd->writeDigitNum(1, 0);
+  ssd->writeDigitNum(3, 0);
+  ssd->writeDigitNum(4, 0);
+  ssd->writeColon();
+  ssd->writeDisplay();
 
-      // Cleare the lcd port and indicator information.
-      lcd->setCursor(0, 1);
-      lcd->print("                    ");
-      lcd->setCursor(0, 2);
-      lcd->print("                    ");
-      lcd->setCursor(0, 3);
-      lcd->print("SN:        Bat:     ");
+  // Cleare the lcd port and indicator information.
+  lcd->setCursor(0, 1);
+  lcd->print("                    ");
+  lcd->setCursor(0, 2);
+  lcd->print("                    ");
+  lcd->setCursor(0, 3);
+  lcd->print("SN:        Bat:     ");
 }
 
 void Control::start() {
-  Serial.println("start()...");
-  muteOutput();
+    Serial.println("start");
   setMode(ModuleMode::Armed);
   // Cleare the line.
   lcd->setCursor(0, 3);
@@ -135,19 +133,14 @@ void Control::start() {
 }
 
 void Control::demo() {
-  Serial.println("demo()...");
-  muteOutput();
+    Serial.println("demo");
   setMode(ModuleMode::Demo);
-
-  updateText = true;
 }
 
 void Control::explode() {
-  Serial.println("explode()...");
-  muteOutput();
-  setMode(ModuleMode::Off);
 
-  updateText = true;
+    Serial.println("explode");
+  setMode(ModuleMode::Off);
 }
 
 void Control::setMode(ModuleMode mode) {
@@ -173,9 +166,6 @@ void Control::setMode(ModuleMode mode) {
   }
 }
 
-void Control::muteOutput() {
-}
-
 Control::ControlButtonListener::ControlButtonListener(Control* parent) {
   this->parent = parent;
 }
@@ -183,10 +173,8 @@ Control::ControlButtonListener::ControlButtonListener(Control* parent) {
 void Control::ControlButtonListener::onEvent(Button* caller,
                                              ButtonEvent /*event*/) {
   if (caller->getID() == 0) {
-    Serial.println("startGame button...");
     parent->gameManager->startGame();
   } else if (caller->getID() == 1) {
-    Serial.println("stopGame button...");
     parent->gameManager->stopGame();
   }
 }
@@ -256,9 +244,8 @@ unsigned int Control::ControlTimerListener::onEvent(Timer* /*caller*/,
         for (uint8_t i = 0; i < 20 - length; i++) {
           parent->lcd->print(" ");
         }
-
-        parent->updateText = false;
       }
+      parent->updateText = false;
     }
   }
 

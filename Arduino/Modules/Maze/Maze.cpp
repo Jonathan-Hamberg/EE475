@@ -1,5 +1,5 @@
-#include <Arduino.h>
 #include "Maze.h"
+#include <Arduino.h>
 
 #define MAZE_BLACK 0
 #define MAZE_RED 655360
@@ -10,7 +10,9 @@
 
 #define BLINK_TIME 350
 
-Maze::Maze(ShiftOut * out, ButtonManager * buttons, Timer * t, RGB_LED * led, Adafruit_NeoPixel * strip, ArduinoGameManager * gameManager): buttonListener(this), timerListener(this) {
+Maze::Maze(ShiftOut *out, ButtonManager *buttons, Timer *t, RGB_LED *led,
+           Adafruit_NeoPixel *strip, ArduinoGameManager *gameManager)
+    : buttonListener(this), timerListener(this) {
   this->out = out;
   this->buttons = buttons;
   this->t = t;
@@ -32,7 +34,8 @@ void Maze::init(uint32_t seed) {
   uint8_t start_x = r.next() % 6;
   uint8_t start_y = r.next() % 6;
 
-  while ((start_x >= goal_x - 1 && start_x <= goal_x + 1) && (start_y >= goal_y - 1 && start_y <= goal_y + 1)) {
+  while ((start_x >= goal_x - 1 && start_x <= goal_x + 1) &&
+         (start_y >= goal_y - 1 && start_y <= goal_y + 1)) {
     Serial.println("Miss");
     start_x = r.next() & 6;
     start_y = r.next() & 6;
@@ -91,10 +94,11 @@ void Maze::updateDisplay(unsigned int cycle) {
   */
   setPoint(MAZE_GREEN, board.getInd1().x, board.getInd1().y);
   setPoint(MAZE_GREEN, board.getInd2().x, board.getInd2().y);
-  if (!(checkPoints(board.getGoal(), board.getInd1()) || checkPoints(board.getGoal(), board.getInd2()))) {
+  if (!(checkPoints(board.getGoal(), board.getInd1()) ||
+        checkPoints(board.getGoal(), board.getInd2()))) {
     setPoint(MAZE_RED, board.getGoal().x, board.getGoal().y);
   }
-  if(!(cycle & 1)) {
+  if (!(cycle & 1)) {
     setPoint(MAZE_BLUE, board.getPlayer().x, board.getPlayer().y);
   } else {
     setPoint(MAZE_RED, board.getGoal().x, board.getGoal().y);
@@ -103,6 +107,9 @@ void Maze::updateDisplay(unsigned int cycle) {
 }
 
 void Maze::muteOutput() {
+  for (int i = 0; i < 4; i++) {
+    out->set(i, 0, false);
+  }
   for (int i = 0; i < 36; i++) {
     strip->setPixelColor(i, MAZE_BLACK);
   }
@@ -111,7 +118,7 @@ void Maze::muteOutput() {
 
 void Maze::setPoint(uint32_t color, uint8_t x, uint8_t y) {
   unsigned int n = (5 - x) + 6 * y;
-  //Serial.println(n);
+  // Serial.println(n);
   strip->setPixelColor(n, color);
 }
 
@@ -121,26 +128,31 @@ bool Maze::checkPoints(MazeBoard::point a, MazeBoard::point b) {
 
 void Maze::setMode(ModuleMode mode) {
   this->mode = mode;
+  muteOutput();
   switch (mode) {
     case ModuleMode::Armed:
       led->set(0, LED_RED);
-    break;
+      break;
     case ModuleMode::Disarmed:
       led->set(0, LED_GREEN);
       gameManager->disarmModule();
-    break;
+      break;
     case ModuleMode::Demo:
       led->set(0, LED_BLUE);
-    break;
-    default: break;
+      break;
+    case ModuleMode::Off:
+      led->set(0, LED_BLACK);
+      break;
+    default:
+      break;
   }
 }
 
-Maze::MazeButtonListener::MazeButtonListener(Maze * parent) {
+Maze::MazeButtonListener::MazeButtonListener(Maze *parent) {
   this->parent = parent;
 }
 
-void Maze::MazeButtonListener::onEvent(Button * caller, ButtonEvent event) {
+void Maze::MazeButtonListener::onEvent(Button *caller, ButtonEvent event) {
   if (event == ButtonEvent::RELEASE) {
     parent->out->set(caller->getID(), 0, false);
   } else {
@@ -148,23 +160,25 @@ void Maze::MazeButtonListener::onEvent(Button * caller, ButtonEvent event) {
       parent->out->set(caller->getID(), 0, true);
       bool good = parent->board.move(caller->getID());
       if (good) {
-        if (parent->checkPoints(parent->board.getPlayer(), parent->board.getGoal())) {
+        if (parent->checkPoints(parent->board.getPlayer(),
+                                parent->board.getGoal())) {
           parent->setMode(ModuleMode::Disarmed);
         }
       } else {
-          parent->gameManager->strikeModule();
-        //send strike
+        parent->gameManager->strikeModule();
+        // send strike
       }
       parent->updateDisplay(0);
     }
   }
 }
 
-Maze::MazeTimerListener::MazeTimerListener(Maze * parent) {
+Maze::MazeTimerListener::MazeTimerListener(Maze *parent) {
   this->parent = parent;
 }
 
-unsigned int Maze::MazeTimerListener::onEvent(Timer *caller, unsigned int id, unsigned int calls) {
+unsigned int Maze::MazeTimerListener::onEvent(Timer *caller, unsigned int id,
+                                              unsigned int calls) {
   if (parent->mode == ModuleMode::Armed) {
     parent->updateDisplay(calls);
   } else if (parent->mode == ModuleMode::Demo) {
@@ -175,5 +189,3 @@ unsigned int Maze::MazeTimerListener::onEvent(Timer *caller, unsigned int id, un
   }
   return BLINK_TIME;
 }
-
-

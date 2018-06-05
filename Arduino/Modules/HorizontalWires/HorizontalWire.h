@@ -56,6 +56,7 @@ class HorizontalWire : public GameModule {
   GameState* game;
   ArduinoGameManager* gameManager;
   lfsr r;
+  uint8_t removedWires;
 
   ModuleMode mode;
   uint8_t numWires;
