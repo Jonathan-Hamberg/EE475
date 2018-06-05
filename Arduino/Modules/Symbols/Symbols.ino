@@ -23,8 +23,8 @@ ShiftOut out;
 Timer t(1);
 Adafruit_SSD1306 tft(-1);
 ButtonManager buttons(0, 4, &in);
-RGB_LED led(&out, 16, 0, 8, 0, 0, 0);
-ArduinoGameManager gameManager;
+RGB_LED led(&out, 7, 0, 5, 0, 6, 0);
+ArduinoGameManager gameManager(ModuleType::Symbols);
 Symbols module(&out, &in, &tft, &buttons, &led, &t, &gameManager);
 
 // Un-comment #define SSD1306_128_64 on line 73 in file Adafruit_SSD1306.h
@@ -34,9 +34,6 @@ Symbols module(&out, &in, &tft, &buttons, &led, &t, &gameManager);
 #endif
 
 void setup() {
-  /* Serial.begin(115200); */
-  // Assign the type to the module.
-  gameManager.setModuleType(ModuleType::Symbols);
 
   // put your setup code here, to run once:
   unsigned int pin = DATA_OUT_PIN;
@@ -46,7 +43,6 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
   out.load();
   in.load();
   buttons.load();

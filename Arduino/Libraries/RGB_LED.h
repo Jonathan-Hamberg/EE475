@@ -32,9 +32,9 @@ class RGB_LED final {
   /**
    * This is the rgb led constructor. The m and n values corispond to the
    * m and n locations of the first led in each color.
-   * 
+   *
    * n values are always by index not by registor
-   * 
+   *
    * @param reg the ShiftReg object to use
    * @param rm the red m value
    * @param rn the red n value
@@ -47,7 +47,7 @@ class RGB_LED final {
 
   /**
    * This function sets the color of an LED.
-   * 
+   *
    * @param led the index of the led relitive to the first led
    * @param color the color to set the led
    */
@@ -57,7 +57,7 @@ class RGB_LED final {
    * destuctor
    */
   virtual ~RGB_LED();
-  
+
   private:
   ShiftOut* reg;
   unsigned int rm, rn, gm, gn, bm, bn;

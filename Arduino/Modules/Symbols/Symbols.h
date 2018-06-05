@@ -30,9 +30,10 @@ class Symbols : public GameModule {
 
   virtual void explode();
 
+ private:
+
   void drawSymbol(uint8_t screen, uint8_t symbol);
 
- private:
   class SymbolsButtonListener : public ButtonListener {
    public:
     SymbolsButtonListener(Symbols *parent);
