@@ -5,7 +5,7 @@
 #include "Definitions.h"
 #include "GameState.h"
 #include "LFSR.h"
-#include <cstring>
+#include <string.h>
 
 //              000000000011111111112222222222
 //              012345678901234567890123456789

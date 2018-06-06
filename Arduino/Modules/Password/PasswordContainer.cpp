@@ -15,11 +15,22 @@ void PasswordContainer::build(lfsr *r) {
   for (unsigned int i = 0; i < PASSWORD_LENGTH; i++ ) {
     text[i][0] = phrases[phraseIndex][i];
   }
-
+  int count = 0;
   do {
     for (unsigned int i = 0; i < PASSWORD_LENGTH; i++) {
-      for (unsigned int j = 1; i < PASSWORD_DEPTH; i++) {
-        text[i][j] = 'A' + r->next() % 26;
+      for (unsigned int j = 1; j < PASSWORD_DEPTH; j++) {
+        bool good = true;
+        do {
+          good = true;
+          text[i][j] = 'A' + r->next() % 26;
+          for (unsigned int k = 0; k < j; k++) {
+            if (text[i][k] == text[i][j]) good = false;
+            //Serial.print(count++);
+            //Serial.print(", ");
+            //Serial.println(text[i][j]);
+            //if (k == j) Serial.println("BAD");
+          }
+        } while (!good);
       }
     }
   } while (numPossible() != 1);
@@ -57,10 +68,12 @@ uint16_t PasswordContainer::numPossible() {
       possible++;
     }
   }
+  //Serial.print("possible ");
+  //Serial.println(possible);
   return possible;
 }
 
-bool PasswordContainer::hasPassword(char * password) {
+bool PasswordContainer::hasPassword(const char * password) {
   for (unsigned int i = 0; i < PASSWORD_LENGTH; i++) {
     bool found = false;
     for (unsigned int j = 0; j < PASSWORD_DEPTH; j++) {

@@ -26,7 +26,7 @@ class PasswordContainer final {
 
   uint16_t numPossible();
 
-  bool hasPassword(char * password);
+  bool hasPassword(const char * password);
 
   uint8_t index[PASSWORD_LENGTH];
   char text[PASSWORD_LENGTH][PASSWORD_DEPTH];

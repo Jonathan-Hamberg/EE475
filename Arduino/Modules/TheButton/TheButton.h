@@ -10,6 +10,7 @@
 #include <GameState.h>
 #include <SPIManager.h>
 #include <Timer.h>
+#include <ArduinoGameManager.h>
 #include <Adafruit_NeoPixel.h>
 #include <LiquidCrystal_I2C.h>
 
@@ -22,7 +23,7 @@
 class TheButton : public GameModule {
   public:
 
-  TheButton(RGB_LED * led, Button * button, Timer * t, GameState * game, SPIManager* spiManager, LiquidCrystal_I2C * lcd, Adafruit_NeoPixel * strip);
+  TheButton(RGB_LED * led, Button * button, Timer * t, LiquidCrystal_I2C * lcd, Adafruit_NeoPixel * strip, ArduinoGameManager * gameManager);
 
   virtual void init(uint32_t seed);
 
@@ -60,7 +61,7 @@ class TheButton : public GameModule {
   Timer::timer * currentTimer;
   LiquidCrystal_I2C * lcd;
   Adafruit_NeoPixel * strip;
-  SPIManager* spiManager;
+  ArduinoGameManager * gameManager;
 
   class TheButtonButtonListener : public ButtonListener {
     public:
