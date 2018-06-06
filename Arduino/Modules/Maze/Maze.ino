@@ -33,8 +33,7 @@ void setup() {
   strip.begin();
   strip.show();
   out.build(6, 1, &pin, OUT_LOAD_PIN, REG_CLOCK);
-  module.init(analogRead(1));
-  module.start();
+  module.init(3968);
 }
 
 void loop() {

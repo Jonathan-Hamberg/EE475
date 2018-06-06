@@ -46,5 +46,6 @@ void loop() {
   out.load();
   in.load();
   buttons.load();
+  t.load();
   gameManager.update();
 }
