@@ -9,11 +9,11 @@
 #include <algorithm>
 
 void SoundManager::audioThreadFunction(SoundManager *parent) {
-    std::cout << "Starting Thread." << std::endl;
-
     int err;
     snd_pcm_t *handle;
     snd_pcm_sframes_t frames;
+    bool shouldPrepare = false;
+    bool isQueueEmpty;
 
     const uint8_t *buffer = nullptr;
     size_t buffer_remaining = 0;
@@ -27,15 +27,13 @@ void SoundManager::audioThreadFunction(SoundManager *parent) {
                                   SND_PCM_ACCESS_RW_INTERLEAVED, // access
                                   1, // channels
                                   48000, // rate
-                                  1, // soft resample
+                                  1, // soft re-sample
                                   500000) // latency (us)
         ) < 0) {
         printf("Playback open error: %s\n", snd_strerror(err));
     }
 
     while (!parent->stopThreadAtomic) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-
         if (parent->stopSoundAtomic) {
             buffer = nullptr;
             buffer_remaining = 0;
@@ -53,13 +51,22 @@ void SoundManager::audioThreadFunction(SoundManager *parent) {
             // Pop the front from the queue.
             parent->soundQueue.pop();
         }
+        // Determine if the queue is now empty.
+        isQueueEmpty = parent->soundQueue.empty();
         parent->queueMutex.unlock();
 
-        // If there is data to play then send it to the sound card.calculator
+
+        // If there is data to play then send it to the sound card.
         if (buffer_remaining > 0) {
+            parent->soundDoneAtomic = false;
 
             // Buffer size.
             size_t frames_remaining = std::min(size_t(4410), buffer_remaining / 2);
+
+            if (shouldPrepare) {
+                snd_pcm_prepare(handle);
+                shouldPrepare = false;
+            }
 
             // Write data to the sound buffer.
             frames = snd_pcm_writei(handle, buffer, frames_remaining);
@@ -74,11 +81,21 @@ void SoundManager::audioThreadFunction(SoundManager *parent) {
             // Update the current place in the buffer.
             buffer += frames * 2;
             buffer_remaining -= frames * 2;
+
+
+            // Drop the sound if no data is left.
+            if (buffer_remaining <= 0 && isQueueEmpty) {
+                snd_pcm_drain(handle);
+                shouldPrepare = true;
+            }
+
+
+        } else {
+            parent->soundDoneAtomic = true;
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
 
     }
-
-    std::cout << "Stopping Thread." << std::endl;
 }
 
 
@@ -92,10 +109,14 @@ SoundManager::SoundManager() {
     soundMap.emplace(PlaySound::Lose, loadFile("Resources/lose.ogg"));
     soundMap.emplace(PlaySound::Strike, loadFile("Resources/strike.ogg"));
     soundMap.emplace(PlaySound::Win, loadFile("Resources/win.ogg"));
+    soundMap.emplace(PlaySound::BeepLow, loadFile("Resources/beepLow.ogg"));
+    soundMap.emplace(PlaySound::BeepHigh, loadFile("Resources/beepHigh.ogg"));
+    soundMap.emplace(PlaySound::Setup, loadFile("Resources/setup.ogg"));
+    soundMap.emplace(PlaySound::LightBuzz, loadFile("Resources/lightBuzz.ogg"));
 
     // Print debug message with the size of the sound data loaded.
     uint64_t bytes = 0;
-    for(const auto& kv : soundMap) {
+    for (const auto &kv : soundMap) {
         bytes += kv.second.size();
     }
     std::cout << "Loaded " << bytes << " bytes of sound data." << std::endl;
@@ -106,6 +127,8 @@ SoundManager::SoundManager() {
     stopSoundAtomic = false;
     // Disable the stopThread flag.
     stopThreadAtomic = false;
+    // No sounds are playing.
+    soundDoneAtomic = true;
 }
 
 SoundManager::~SoundManager() {
@@ -173,4 +196,8 @@ std::vector<uint8_t> SoundManager::loadFile(const char *path) {
     }
 
     return soundData;
+}
+
+bool SoundManager::isSoundDone() {
+    return soundDoneAtomic;
 }

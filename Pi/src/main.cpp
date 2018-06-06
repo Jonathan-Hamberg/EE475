@@ -14,7 +14,7 @@
 static volatile int keepRunning = 1;
 
 uint16_t flag_seed = 3968;
-uint16_t flag_countdown = 15;
+uint16_t flag_countdown = 120;
 uint8_t flag_strikes = 3;
 
 static struct option long_options[] =
@@ -31,13 +31,10 @@ void parseOptions(int argc, char *argv[]) {
     int c;
     int index = 0;
 
-    while ((c = getopt_long(argc, argv, "s:t:c;", long_options, &index)) != -1) {
+    while ((c = getopt_long(argc, argv, "s:t:c:", long_options, &index)) != -1) {
 
         // Perform operations on the options.
         switch (c) {
-            case 0:
-                break;
-
             case 's':
                 flag_seed = uint16_t(strtol(optarg, nullptr, 10));
                 std::cout << "-s " << flag_seed << std::endl;
@@ -48,7 +45,9 @@ void parseOptions(int argc, char *argv[]) {
 
                 break;
             case 'c':
+
                 flag_countdown = uint16_t(strtol(optarg, nullptr, 10));
+
                 std::cout << "-c " << flag_countdown << std::endl;
 
                 break;
@@ -84,16 +83,21 @@ int main(int argc, char *argv[]) {
     signal(SIGINT, intHandler);
 
     // Create the SPI Manager object.
-    SPIManager spiManager = SPIManager();
+    SPIManager spiManager;
 
     // Create the module manager object.
     ModuleManager moduleManager = ModuleManager(&spiManager);
 
-    // Create the game manager object.
-    GameManager gameManager = GameManager(&moduleManager);
+    // Create the sound manager object.
+    SoundManager soundManager;
 
+    // Create the game manager object.
+    GameManager gameManager = GameManager(&moduleManager, &soundManager, flag_seed);
+
+    // Generate a random game state.
     gameManager.generateGameState(flag_seed, flag_countdown, flag_strikes);
 
+    // Determine which modules are connected to the system.
     moduleManager.queryModules(flag_seed);
 
     // Update every 100ms.
@@ -101,9 +105,7 @@ int main(int argc, char *argv[]) {
         // Update the state of all the modules.
         gameManager.update();
 
-        // Sleep for 1 second.
-        usleep(1000 * 1000);
-
+        std::this_thread::sleep_for(std::chrono::milliseconds(150));
     }
 
     return EXIT_SUCCESS;

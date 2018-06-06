@@ -114,7 +114,11 @@ enum class PlaySound : uint8_t {
     Key4,
     Lose,
     Win,
-    Strike
+    Strike,
+    BeepLow,
+    BeepHigh,
+    Setup,
+    LightBuzz,
 };
 
 

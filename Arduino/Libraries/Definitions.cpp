@@ -1,6 +1,6 @@
 #include "Definitions.h"
 
-const char* ModuleText0[] = {"None",
+const char* ModuleText[] = {"None",
                              "Wires",
                              "Button",
                              "Keypad",

@@ -21,6 +21,7 @@ set ( SRC
         ../Arduino/Libraries/LFSR.cpp
 		../Arduino/Libraries/LFSR.h
 		../Arduino/Libraries/Definitions.h
+		../Arduino/Libraries/Definitions.cpp
 		src/GameManager.cpp
 		src/GameManager.h
 		src/SoundManager.h

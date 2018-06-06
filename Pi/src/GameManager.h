@@ -4,6 +4,7 @@
 #include "Definitions.h"
 #include "GameState.h"
 #include "ModuleManager.h"
+#include "SoundManager.h"
 #include <chrono>
 
 /**
@@ -17,7 +18,7 @@ public:
      *
      * @param moduleManager
      */
-    explicit GameManager(ModuleManager *moduleManager);
+    GameManager(ModuleManager *moduleManager, SoundManager* soundManager, uint16_t seed);
 
     /**
     *
@@ -59,11 +60,6 @@ public:
     /**
      *
      */
-    void playSound(PlaySound sound);
-
-    /**
-     *
-     */
     void onStrike(uint8_t address);
 
     /**
@@ -90,6 +86,8 @@ private:
     ModuleManager *moduleManager;
 
     ModuleMode currentMode = ModuleMode::Off;
+
+    SoundManager* soundManager;
 
     uint8_t disarmCounter;
 

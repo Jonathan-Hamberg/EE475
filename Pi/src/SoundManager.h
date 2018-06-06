@@ -16,24 +16,27 @@ public:
     ~SoundManager();
 
     void playSound(PlaySound sound);
+
     void stopAllSound();
+
     void stopCurrentSound();
+
+    bool isSoundDone();
 
 private:
 
-    void playSoundCallback(const uint8_t* data, uint32_t length, std::atomic<bool> running);
-
-    std::vector<uint8_t> loadFile(const char* path);
+    std::vector<uint8_t> loadFile(const char *path);
 
     std::map<PlaySound, std::vector<uint8_t>> soundMap;
-    std::queue<std::pair<const uint8_t*, uint32_t>> soundQueue;
+    std::queue<std::pair<const uint8_t *, uint32_t>> soundQueue;
     std::atomic<bool> stopSoundAtomic;
     std::atomic<bool> stopThreadAtomic;
+    std::atomic<bool> soundDoneAtomic;
     std::mutex queueMutex;
     std::thread audioThread;
 
 
-    static void audioThreadFunction(SoundManager* parent);
+    static void audioThreadFunction(SoundManager *parent);
 };
 
 

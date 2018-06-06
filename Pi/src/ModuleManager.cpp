@@ -2,89 +2,82 @@
 #include <iostream>
 #include <sound/asound.h>
 
-const char *ModuleTypeStrings[] = {
-        "None",
-        "Wires",
-        "Button",
-        "Keypad",
-        "SimonSays",
-        "WhosOnFirst",
-        "Memory",
-        "MorseCode",
-        "ComplicatedWires",
-        "WireSequence",
-        "Mazes",
-        "Passwords",
-        "VentingGas",
-        "CapacitorDischarge",
-        "Knobs",
-        "Control",
-};
-
 ModuleManager::ModuleManager(SPIManager *manager) {
     this->spiManager = manager;
 }
 
 void ModuleManager::queryModules(uint16_t seed) {
-    // Clear the module map when querying new modules.
-    moduleMap.clear();
-    controllAddress = 0xFF;
 
-    // Variables used to transmit and receive information from the modules.
-    uint8_t buffer[3];
-
+    // Limit the number of tries to find the control module.
+    uint8_t tries = 0;
     // Used to determine if a control module is present when querying the modules.
-    bool foundControlModule = false;
+    bool foundControlModule;
 
     std::cout << "Discovering connected modules..." << std::endl;
 
-    for (uint8_t i = 0; i < 13; i++) {
-        // Select the module chip at address i.
-        spiManager->selectCS(i);
+    do {
+        // Clear the module map when querying new modules.
+        moduleMap.clear();
+        controllAddress = 0xFF;
+        foundControlModule = false;
 
-        // Seed the global seed.  Create new seed for every possible module address.
-        auto seed = uint16_t(rand());
-        bool hasModule = false;
+        // Variables used to transmit and receive information from the modules.
+        uint8_t buffer[3];
 
-        for (uint8_t j = 0; j < 3 && !hasModule; j++) {
-            buffer[0] = uint8_t(OpCode::Seed) | uint8_t(OpCode::ModuleType) << 4u;
-            buffer[1] = uint8_t(seed);
-            buffer[2] = uint8_t(seed >> 8u);
+        for (uint8_t i = 0; i < 13; i++) {
+            // Select the module chip at address i.
+            spiManager->selectCS(i);
 
-            spiManager->transfer(buffer, 3);
+            // Seed the global seed.  Create new seed for every possible module address.
+            auto moduleSeed = uint16_t(rand());
+            bool hasModule = false;
 
-            if (buffer[1] != 0 && buffer[2] == 0xFF) {
-                hasModule = true;
+            for (uint8_t j = 0; j < 3 && !hasModule; j++) {
+                buffer[0] = uint8_t(OpCode::Seed) | uint8_t(OpCode::ModuleType) << 4u;
+                buffer[1] = uint8_t(moduleSeed);
+                buffer[2] = uint8_t(moduleSeed >> 8u);
+
+                spiManager->transfer(buffer, 3);
+
+                if (buffer[1] != 0 && buffer[2] == 0xFF) {
+                    hasModule = true;
+                }
+            }
+
+            // If the module has been found then add it to the module map.
+            if (hasModule) {
+                GameState myModule;
+
+                // Store the module seed.
+                myModule.setSeed(moduleSeed);
+
+                // Store the module type.
+                myModule.setModuleType(ModuleType(buffer[1]));
+
+                if (ModuleType(buffer[1]) == ModuleType::Control) {
+                    foundControlModule = true;
+                    controllAddress = i;
+                }
+
+                // Add module to the connected map structure.
+                moduleMap.emplace(i, myModule);
             }
         }
-
-        // If the module has been found then add it to the module map.
-        if (hasModule) {
-            GameState myModule;
-
-            // Store the module seed.
-            myModule.setSeed(seed);
-
-            // Store the module type.
-            myModule.setModuleType(ModuleType(buffer[1]));
-
-            // Add module to the connected map structure.
-            moduleMap.emplace(i, myModule);
-        }
-    }
+    } while (!foundControlModule && tries++ < 5);
 
     // Iterate through all the discovered modules on the SPI bus.
     for (const auto &kv : moduleMap) {
 
-        // Determine if the control module is part of the connected modules.
-        if (kv.second.getModuleType() == ModuleType::Control) {
-            this->controllAddress = kv.first;
-            foundControlModule = true;
+        if (uint8_t(kv.second.getModuleType()) < uint8_t(ModuleType::EnumeSize)) {
+            // Print to the console which modules have been discovered.
+            std::cout << "Discovered " << ModuleText[uint8_t(kv.second.getModuleType())] << " at address " <<
+                      int(kv.first) << "." << std::endl;
+        } else {
+            // Print to the console which modules have been discovered.
+            std::cout << "Discovered unknown module number" << int(kv.second.getModuleType()) << " at address " <<
+                      int(kv.first) << "." << std::endl;
         }
 
-        // Print to the console which modules have been discovered.
-        std::cout << "Discovered " << ModuleTypeStrings[uint8_t(kv.second.getModuleType())] << " at address " <<
-                  int(kv.first) << "." << std::endl;
     }
 
     // Determine if the control module was found.
